@@ -1,16 +1,13 @@
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
-use std::str::FromStr;
-use std::{cmp, env, slice};
+use std::slice;
 
-use itertools::Itertools;
 use once_cell::sync::Lazy;
-use pkgcraft::atom::Version;
 use regex::Regex;
 
-use crate::error::update_last_error;
-use crate::macros::unwrap_or_return;
-use crate::Error;
+pub mod ver_cut;
+pub mod ver_test;
+pub mod ver_rs;
 
 /// Convert an array of string pointers into a vector of strings, skipping a given number of
 /// elements at the start.
@@ -29,66 +26,6 @@ unsafe fn args_to_vec(argc: c_int, argv: &*mut *mut c_char, skip: usize) -> Vec<
         .map(|s| unsafe { CStr::from_ptr(*s).to_str().unwrap() })
         .collect();
     args
-}
-
-/// Perform version testing as defined in the spec.
-/// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
-///
-/// Operates on argc and argv passed directly from C and handles freeing argv.
-///
-/// Returns 0 if the specified test is true, 1 otherwise.
-/// Returns -1 if an error occurred.
-///
-/// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
-#[no_mangle]
-pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let args = unsafe { args_to_vec(argc, argv, 1) };
-    let (lhs, op, rhs) = match args.len() {
-        2 => {
-            let varname = "PVR";
-            let pvr = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PVR variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
-            (pvr, args[0].to_string(), args[1].to_string())
-        }
-        3 => (
-            args[0].to_string(),
-            args[1].to_string(),
-            args[2].to_string(),
-        ),
-        n => {
-            let err = Error::new(format!("only accepts 2 or 3 args, got {}", n));
-            update_last_error(err);
-            return -1;
-        }
-    };
-
-    let ver_lhs = unwrap_or_return!(Version::from_str(&lhs), -1);
-    let ver_rhs = unwrap_or_return!(Version::from_str(&rhs), -1);
-
-    let ret = match op.as_ref() {
-        "-eq" => ver_lhs == ver_rhs,
-        "-ne" => ver_lhs != ver_rhs,
-        "-lt" => ver_lhs < ver_rhs,
-        "-gt" => ver_lhs > ver_rhs,
-        "-le" => ver_lhs <= ver_rhs,
-        "-ge" => ver_lhs >= ver_rhs,
-        _ => {
-            let err = Error::new(format!("invalid operator: {:?}", op));
-            update_last_error(err);
-            return -1;
-        }
-    };
-
-    !ret as c_int
 }
 
 peg::parser! {
@@ -144,112 +81,4 @@ fn version_split(ver: &str) -> Vec<&str> {
         version_parts.extend([sep, comp]);
     }
     version_parts
-}
-
-/// Perform string substitution on package version strings.
-/// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
-///
-/// Operates on argc and argv passed directly from C and handles freeing argv.
-///
-/// Returns -1 if an error occurred.
-///
-/// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
-#[no_mangle]
-pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let mut args = unsafe { args_to_vec(argc, argv, 1) };
-    let ver = match args.len() {
-        n if n < 2 => {
-            let err = Error::new(format!("requires 2 or more args, got {}", n));
-            update_last_error(err);
-            return -1;
-        }
-
-        // even number of args pulls the version from PV in the environment
-        n if n % 2 == 0 => {
-            let varname = "PV";
-            let pv = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PV variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
-            pv
-        }
-
-        // odd number of args uses the last arg as the version
-        _ => args.pop().unwrap().to_string(),
-    };
-
-    // Split version string into separators and components, note that the version string doesn't
-    // have to follow the spec since args like ".1.2.3" are allowed.
-    let mut version_parts = version_split(&ver);
-
-    // iterate over (range, separator) pairs
-    let mut args_iter = args.iter();
-    while let Some((range, sep)) = args_iter.next_tuple() {
-        let (start, end) = unwrap_or_return!(parse::range(range, version_parts.len() / 2), -1);
-        for n in start..=end {
-            let idx = n * 2;
-            if idx < version_parts.len() {
-                version_parts[idx] = sep;
-            }
-        }
-    }
-
-    println!("{}", version_parts.join(""));
-
-    0
-}
-
-/// Output substring from package version string and range arguments.
-/// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
-///
-/// Operates on argc and argv passed directly from C and handles freeing argv.
-///
-/// Returns -1 if an error occurred.
-///
-/// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
-#[no_mangle]
-pub unsafe extern "C" fn ver_cut(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let args = unsafe { args_to_vec(argc, argv, 1) };
-    let (range, ver) = match args.len() {
-        1 => {
-            let varname = "PV";
-            let pv = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PV variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
-            (args[0].to_string(), pv)
-        }
-        2 => (args[0].to_string(), args[1].to_string()),
-        n => {
-            let err = Error::new(format!("requires 1 or 2 args, got {}", n));
-            update_last_error(err);
-            return -1;
-        }
-    };
-
-    let version_parts = version_split(&ver);
-    let max_idx = version_parts.len();
-    let (start, end) = unwrap_or_return!(parse::range(&range, version_parts.len() / 2), -1);
-    let start_idx = match start {
-        0 => 0,
-        n => cmp::min(n * 2 - 1, max_idx),
-    };
-    let end_idx = cmp::min(end * 2, max_idx);
-    println!("{}", &version_parts[start_idx..end_idx].join(""));
-
-    0
 }
