@@ -1,7 +1,7 @@
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
-use std::{cmp, env};
+use std::{cmp, env, slice};
 
 use itertools::Itertools;
 use once_cell::sync::Lazy;
@@ -17,10 +17,12 @@ use crate::Error;
 ///
 /// Note that this automatically frees the memory used for argv when it goes out of scope so the C
 /// caller shouldn't try to free it.
-fn args_to_vec<'a>(argc: c_int, argv: *mut *mut c_char, skip: usize) -> Vec<&'a str> {
+///
+/// # Safety
+/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
+unsafe fn args_to_vec(argc: c_int, argv: &*mut *mut c_char, skip: usize) -> Vec<&str> {
     let args_len: usize = argc.try_into().unwrap();
-    let cargs = unsafe { Vec::from_raw_parts(argv, args_len, args_len) };
-    let args: Vec<&str> = cargs
+    let args: Vec<&str> = unsafe { slice::from_raw_parts(*argv, args_len) }
         .iter()
         .skip(skip)
         .map(|s| unsafe { CStr::from_ptr(*s).to_str().unwrap() })
@@ -35,10 +37,12 @@ fn args_to_vec<'a>(argc: c_int, argv: *mut *mut c_char, skip: usize) -> Vec<&'a 
 ///
 /// Returns 0 if the specified test is true, 1 otherwise.
 /// Returns -1 if an error occurred.
+///
+/// # Safety
+/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
 #[no_mangle]
-pub extern "C" fn ver_test(argc: c_int, argv: *mut *mut c_char) -> c_int {
-    // skip the initial program name in argv[0]
-    let args = args_to_vec(argc, argv, 1);
+pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int {
+    let args = unsafe { args_to_vec(argc, argv, 1) };
     let (lhs, op, rhs) = match args.len() {
         2 => {
             let varname = "PVR";
@@ -146,10 +150,12 @@ fn version_split(ver: &str) -> Vec<&str> {
 /// Operates on argc and argv passed directly from C and handles freeing argv.
 ///
 /// Returns -1 if an error occurred.
+///
+/// # Safety
+/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
 #[no_mangle]
-pub extern "C" fn ver_rs(argc: c_int, argv: *mut *mut c_char) -> c_int {
-    // skip the initial program name in argv[0]
-    let mut args = args_to_vec(argc, argv, 1);
+pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
+    let mut args = unsafe { args_to_vec(argc, argv, 1) };
     let ver = match args.len() {
         n if n < 2 => {
             let err = Error::new(format!("requires 2 or more args, got {}", n));
@@ -203,10 +209,12 @@ pub extern "C" fn ver_rs(argc: c_int, argv: *mut *mut c_char) -> c_int {
 /// Operates on argc and argv passed directly from C and handles freeing argv.
 ///
 /// Returns -1 if an error occurred.
+///
+/// # Safety
+/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
 #[no_mangle]
-pub extern "C" fn ver_cut(argc: c_int, argv: *mut *mut c_char) -> c_int {
-    // skip the initial program name in argv[0]
-    let args = args_to_vec(argc, argv, 1);
+pub unsafe extern "C" fn ver_cut(argc: c_int, argv: &*mut *mut c_char) -> c_int {
+    let args = unsafe { args_to_vec(argc, argv, 1) };
     let (range, ver) = match args.len() {
         1 => {
             let varname = "PV";
