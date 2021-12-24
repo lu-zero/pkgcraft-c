@@ -25,8 +25,11 @@ pub struct Atom {
 
 /// Parse a string into an atom using a specific EAPI. Pass a null pointer for the eapi argument in
 /// order to parse using the latest EAPI with extensions (e.g. support for repo deps).
+///
+/// # Safety
+/// The atom and eapi arguments should point to valid strings.
 #[no_mangle]
-pub extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -> *mut Atom {
+pub unsafe extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -> *mut Atom {
     if atom.is_null() {
         let err = Error::new("no atom string provided");
         update_last_error(err);
@@ -121,7 +124,10 @@ pub extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -> *mut 
 }
 
 /// Convert a C-compatible Atom struct to a rust Atom struct.
-pub fn atom_to_rust(atom: *mut Atom) -> Result<atom::Atom> {
+///
+/// # Safety
+/// The atom argument should only correspond to an Atom received from str_to_atom().
+pub unsafe fn atom_to_rust(atom: *mut Atom) -> Result<atom::Atom> {
     if atom.is_null() {
         return Err(Error::new("no atom provided"));
     }
@@ -155,9 +161,12 @@ pub fn atom_to_rust(atom: *mut Atom) -> Result<atom::Atom> {
 
 /// Return a given atom's key, e.g. the atom "=cat/pkg-1-r2" has a key of "cat/pkg".
 /// Returns a null pointer on error.
+///
+/// # Safety
+/// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
-pub extern "C" fn atom_key(atom: *mut Atom) -> *const c_char {
-    let key = match atom_to_rust(atom) {
+pub unsafe extern "C" fn atom_key(atom: *mut Atom) -> *const c_char {
+    let key = match unsafe { atom_to_rust(atom) } {
         Ok(a) => a.key(),
         Err(e) => {
             update_last_error(e);
@@ -170,9 +179,12 @@ pub extern "C" fn atom_key(atom: *mut Atom) -> *const c_char {
 
 /// Return a given atom's cpv, e.g. the atom "=cat/pkg-1-r2" has a cpv of "cat/pkg-1-r2".
 /// Returns a null pointer on error.
+///
+/// # Safety
+/// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
-pub extern "C" fn atom_cpv(atom: *mut Atom) -> *const c_char {
-    let cpv = match atom_to_rust(atom) {
+pub unsafe extern "C" fn atom_cpv(atom: *mut Atom) -> *const c_char {
+    let cpv = match unsafe { atom_to_rust(atom) } {
         Ok(a) => a.cpv(),
         Err(e) => {
             update_last_error(e);
@@ -184,33 +196,39 @@ pub extern "C" fn atom_cpv(atom: *mut Atom) -> *const c_char {
 }
 
 /// Free an atom.
+///
+/// # Safety
+/// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
 pub unsafe extern "C" fn atom_free(atom: *mut Atom) {
     if atom.is_null() {
         return;
     }
 
-    let a = Box::from_raw(atom);
-    drop(CString::from_raw(a.string as *mut _));
-    drop(CString::from_raw(a.eapi as *mut _));
-    drop(CString::from_raw(a.category as *mut _));
-    drop(CString::from_raw(a.package as *mut _));
-    if !a.version.is_null() {
-        drop(CString::from_raw(a.version as *mut _));
-    }
-    if !a.slot.is_null() {
-        drop(CString::from_raw(a.slot as *mut _));
-    }
-    if !a.subslot.is_null() {
-        drop(CString::from_raw(a.subslot as *mut _));
-    }
-    if !a.use_deps.is_null() {
-        let use_deps = Vec::from_raw_parts(a.use_deps as *mut _, a.use_deps_len, a.use_deps_len);
-        for &u in use_deps.iter() {
-            drop(CString::from_raw(u));
+    unsafe {
+        let a = Box::from_raw(atom);
+        drop(CString::from_raw(a.string as *mut _));
+        drop(CString::from_raw(a.eapi as *mut _));
+        drop(CString::from_raw(a.category as *mut _));
+        drop(CString::from_raw(a.package as *mut _));
+        if !a.version.is_null() {
+            drop(CString::from_raw(a.version as *mut _));
         }
-    }
-    if !a.repo.is_null() {
-        drop(CString::from_raw(a.repo as *mut _));
+        if !a.slot.is_null() {
+            drop(CString::from_raw(a.slot as *mut _));
+        }
+        if !a.subslot.is_null() {
+            drop(CString::from_raw(a.subslot as *mut _));
+        }
+        if !a.use_deps.is_null() {
+            let use_deps =
+                Vec::from_raw_parts(a.use_deps as *mut _, a.use_deps_len, a.use_deps_len);
+            for &u in use_deps.iter() {
+                drop(CString::from_raw(u));
+            }
+        }
+        if !a.repo.is_null() {
+            drop(CString::from_raw(a.repo as *mut _));
+        }
     }
 }
