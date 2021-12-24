@@ -1,12 +1,12 @@
-use std::os::raw::{c_char, c_int};
 use std::env;
+use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
 use pkgcraft::atom::Version;
 
 use super::args_to_vec;
-use crate::macros::unwrap_or_return;
 use crate::error::update_last_error;
+use crate::macros::unwrap_or_return;
 use crate::Error;
 
 /// Perform version testing as defined in the spec.
@@ -68,5 +68,3 @@ pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int
 
     !ret as c_int
 }
-
-

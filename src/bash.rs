@@ -6,8 +6,8 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 pub mod ver_cut;
-pub mod ver_test;
 pub mod ver_rs;
+pub mod ver_test;
 
 /// Convert an array of string pointers into a vector of strings, skipping a given number of
 /// elements at the start.

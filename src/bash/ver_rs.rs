@@ -1,11 +1,11 @@
-use std::os::raw::{c_char, c_int};
 use std::env;
+use std::os::raw::{c_char, c_int};
 
 use itertools::Itertools;
 
 use super::args_to_vec;
-use crate::macros::unwrap_or_return;
 use crate::error::update_last_error;
+use crate::macros::unwrap_or_return;
 use crate::Error;
 
 use super::{parse, version_split};
