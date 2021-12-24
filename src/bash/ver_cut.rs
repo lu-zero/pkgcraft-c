@@ -1,12 +1,12 @@
 use std::os::raw::{c_char, c_int};
 use std::{cmp, env};
 
+use pkgcraft::bash::{parse, version_split};
+
 use super::args_to_vec;
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
-
-use super::{parse, version_split};
 
 /// Output substring from package version string and range arguments.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14

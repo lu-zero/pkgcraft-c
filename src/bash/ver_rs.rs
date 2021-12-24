@@ -2,13 +2,12 @@ use std::env;
 use std::os::raw::{c_char, c_int};
 
 use itertools::Itertools;
+use pkgcraft::bash::{parse, version_split};
 
 use super::args_to_vec;
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
-
-use super::{parse, version_split};
 
 /// Perform string substitution on package version strings.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
