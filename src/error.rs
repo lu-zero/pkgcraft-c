@@ -60,14 +60,31 @@ pub(crate) fn update_last_error<E: std::error::Error + 'static>(err: E) {
 
 /// Get the most recent error message as a UTF-8 string, if none exists a null pointer is returned.
 ///
-/// The caller is expected to free memory used by the string after they're finished using it.
+/// # Safety
+/// The caller is expected to free the error string using error_message_free() after they're
+/// finished using it.
 #[no_mangle]
 pub extern "C" fn last_error_message() -> *mut c_char {
     // Retrieve the most recent error, clearing it in the process.
     let last_error: Option<Box<dyn std::error::Error>> =
         LAST_ERROR.with(|prev| prev.borrow_mut().take());
     match last_error {
-        Some(e) => CString::new(e.to_string()).unwrap().into_raw(),
+        Some(e) => CString::new(e.to_string())
+            .expect("invalid error message")
+            .into_raw(),
         None => ptr::null_mut(),
     }
+}
+
+/// Free an error message.
+///
+/// # Safety
+/// The err argument should only correspond to a string received from last_error_message().
+#[no_mangle]
+pub unsafe extern "C" fn error_message_free(err: *mut c_char) {
+    if err.is_null() {
+        return;
+    }
+
+    unsafe { drop(CString::from_raw(err as *mut _)) };
 }
