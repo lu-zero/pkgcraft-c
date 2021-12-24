@@ -19,7 +19,8 @@ use crate::Error;
 /// caller shouldn't try to free it.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
+/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
+/// valid UTF-8.
 unsafe fn args_to_vec(argc: c_int, argv: &*mut *mut c_char, skip: usize) -> Vec<&str> {
     let args_len: usize = argc.try_into().unwrap();
     let args: Vec<&str> = unsafe { slice::from_raw_parts(*argv, args_len) }
@@ -39,7 +40,8 @@ unsafe fn args_to_vec(argc: c_int, argv: &*mut *mut c_char, skip: usize) -> Vec<
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
+/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
+/// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int {
     let args = unsafe { args_to_vec(argc, argv, 1) };
@@ -152,7 +154,8 @@ fn version_split(ver: &str) -> Vec<&str> {
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
+/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
+/// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
     let mut args = unsafe { args_to_vec(argc, argv, 1) };
@@ -211,7 +214,8 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a valid pointer to an array of strings of length argc.
+/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
+/// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_cut(argc: c_int, argv: &*mut *mut c_char) -> c_int {
     let args = unsafe { args_to_vec(argc, argv, 1) };
