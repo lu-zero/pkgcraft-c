@@ -9,9 +9,6 @@ pub mod ver_test;
 /// Convert an array of string pointers into a vector of strings, skipping a given number of
 /// elements at the start.
 ///
-/// Note that this automatically frees the memory used for argv when it goes out of scope so the C
-/// caller shouldn't try to free it.
-///
 /// # Safety
 /// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
 /// valid UTF-8.
