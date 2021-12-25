@@ -5,6 +5,7 @@ use std::{mem, ptr};
 use pkgcraft::{atom, eapi};
 
 use crate::error::update_last_error;
+use crate::macros::unwrap_or_return;
 use crate::{Error, Result};
 
 #[repr(C)]
@@ -36,24 +37,12 @@ pub unsafe extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -
         return ptr::null_mut();
     }
 
-    let atom_str = match unsafe { CStr::from_ptr(atom).to_str() } {
-        Ok(s) => s,
-        Err(e) => {
-            update_last_error(e);
-            return ptr::null_mut();
-        }
-    };
+    let atom_str = unsafe { unwrap_or_return!(CStr::from_ptr(atom).to_str(), ptr::null_mut()) };
 
     let eapi = match eapi.is_null() {
         true => &eapi::EAPI_PKGCRAFT,
         false => match unsafe { CStr::from_ptr(eapi).to_str() } {
-            Ok(s) => match eapi::get_eapi(s) {
-                Ok(eapi) => eapi,
-                Err(e) => {
-                    update_last_error(e);
-                    return ptr::null_mut();
-                }
-            },
+            Ok(s) => unwrap_or_return!(eapi::get_eapi(s), ptr::null_mut()),
             Err(e) => {
                 update_last_error(e);
                 return ptr::null_mut();
@@ -61,13 +50,7 @@ pub unsafe extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -
         },
     };
 
-    let atom = match atom::parse::dep(atom_str, eapi) {
-        Ok(a) => a,
-        Err(e) => {
-            update_last_error(e);
-            return ptr::null_mut();
-        }
-    };
+    let atom = unwrap_or_return!(atom::parse::dep(atom_str, eapi), ptr::null_mut());
 
     // parsing should catch errors so no need to check here
     let string = CString::new(atom_str).unwrap().into_raw();
