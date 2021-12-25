@@ -1,10 +1,9 @@
-use std::env;
 use std::os::raw::{c_char, c_int};
 
 use itertools::Itertools;
 use pkgcraft::bash::{parse, version_split};
 
-use super::args_to_vec;
+use super::{args_to_vec, get_env};
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
@@ -30,19 +29,7 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
         }
 
         // even number of args pulls the version from PV in the environment
-        n if n % 2 == 0 => {
-            let varname = "PV";
-            let pv = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PV variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
-            pv
-        }
+        n if n % 2 == 0 => unwrap_or_return!(get_env("PV"), -1),
 
         // odd number of args uses the last arg as the version
         _ => args.pop().unwrap().to_string(),

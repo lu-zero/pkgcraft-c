@@ -1,9 +1,9 @@
+use std::cmp;
 use std::os::raw::{c_char, c_int};
-use std::{cmp, env};
 
 use pkgcraft::bash::{parse, version_split};
 
-use super::args_to_vec;
+use super::{args_to_vec, get_env};
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
@@ -23,16 +23,7 @@ pub unsafe extern "C" fn ver_cut(argc: c_int, argv: &*mut *mut c_char) -> c_int 
     let args = unsafe { args_to_vec(argc, argv, 1) };
     let (range, ver) = match args.len() {
         1 => {
-            let varname = "PV";
-            let pv = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PV variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
+            let pv = unwrap_or_return!(get_env("PV"), -1);
             (args[0].to_string(), pv)
         }
         2 => (args[0].to_string(), args[1].to_string()),

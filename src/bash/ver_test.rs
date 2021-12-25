@@ -1,10 +1,9 @@
-use std::env;
 use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
 use pkgcraft::atom::Version;
 
-use super::args_to_vec;
+use super::{args_to_vec, get_env};
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
@@ -25,16 +24,7 @@ pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int
     let args = unsafe { args_to_vec(argc, argv, 1) };
     let (lhs, op, rhs) = match args.len() {
         2 => {
-            let varname = "PVR";
-            let pvr = match env::var(varname) {
-                Ok(v) => v,
-                Err(e) => {
-                    // PVR variable is invalid or missing from the environment
-                    let err = Error::new(format!("{}: {:?}", e, varname));
-                    update_last_error(err);
-                    return -1;
-                }
-            };
+            let pvr = unwrap_or_return!(get_env("PVR"), -1);
             (pvr, args[0].to_string(), args[1].to_string())
         }
         3 => (
