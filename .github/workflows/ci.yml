@@ -15,7 +15,6 @@ jobs:
         rust-version: ['1.56.0', 'stable']
 
     steps:
-
     - name: Checkout pkgcraft
       uses: actions/checkout@v2
       with:
