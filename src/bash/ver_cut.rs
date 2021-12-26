@@ -11,7 +11,7 @@ use crate::Error;
 /// Output substring from package version string and range arguments.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
 ///
-/// Operates on argc and argv passed directly from C and handles freeing argv.
+/// Operates on argc and argv passed directly from C.
 ///
 /// Returns -1 if an error occurred.
 ///

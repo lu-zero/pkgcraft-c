@@ -11,7 +11,7 @@ use crate::Error;
 /// Perform version testing as defined in the spec.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
 ///
-/// Operates on argc and argv passed directly from C and handles freeing argv.
+/// Operates on argc and argv passed directly from C.
 ///
 /// Returns 0 if the specified test is true, 1 otherwise.
 /// Returns -1 if an error occurred.
