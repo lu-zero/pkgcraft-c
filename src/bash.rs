@@ -5,6 +5,7 @@ use std::slice;
 
 use crate::{Error, Result};
 
+pub mod has;
 pub mod ver_cut;
 pub mod ver_rs;
 pub mod ver_test;
