@@ -20,5 +20,4 @@ capi = []
 
 [dependencies]
 pkgcraft = { path = "../pkgcraft", version = "0.0.2" }
-itertools = "0.10.2"
 tracing = "0.1"

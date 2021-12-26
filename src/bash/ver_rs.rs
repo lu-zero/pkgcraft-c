@@ -1,6 +1,5 @@
 use std::os::raw::{c_char, c_int};
 
-use itertools::Itertools;
 use pkgcraft::bash::{parse, version_split};
 
 use super::{args_to_vec, get_env};
@@ -20,7 +19,7 @@ use crate::Error;
 /// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let mut args = unsafe { args_to_vec(argc, argv, 1) };
+    let mut args = unsafe { &args_to_vec(argc, argv)[1..] };
     let ver = match args.len() {
         n if n < 2 => {
             let err = Error::new(format!("requires 2 or more args, got {}", n));
@@ -32,7 +31,11 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
         n if n % 2 == 0 => unwrap_or_return!(get_env("PV"), -1),
 
         // odd number of args uses the last arg as the version
-        _ => args.pop().unwrap().to_string(),
+        _ => {
+            let ver = args.last().unwrap().to_string();
+            args = &args[..args.len() - 1];
+            ver
+        }
     };
 
     // Split version string into separators and components, note that the version string doesn't
@@ -40,8 +43,8 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
     let mut version_parts = version_split(&ver);
 
     // iterate over (range, separator) pairs
-    let mut args_iter = args.iter();
-    while let Some((range, sep)) = args_iter.next_tuple() {
+    let mut args_iter = args.chunks_exact(2);
+    while let Some(&[range, sep]) = args_iter.next() {
         let (start, end) = unwrap_or_return!(parse::range(range, version_parts.len() / 2), -1);
         for n in start..=end {
             let idx = n * 2;

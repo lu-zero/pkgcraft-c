@@ -21,7 +21,7 @@ use crate::Error;
 /// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let args = unsafe { args_to_vec(argc, argv, 1) };
+    let args = unsafe { &args_to_vec(argc, argv)[1..] };
     let (lhs, op, rhs) = match args.len() {
         2 => {
             let pvr = unwrap_or_return!(get_env("PVR"), -1);

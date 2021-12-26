@@ -20,7 +20,7 @@ use crate::Error;
 /// valid UTF-8.
 #[no_mangle]
 pub unsafe extern "C" fn ver_cut(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let args = unsafe { args_to_vec(argc, argv, 1) };
+    let args = unsafe { &args_to_vec(argc, argv)[1..] };
     let (range, ver) = match args.len() {
         1 => {
             let pv = unwrap_or_return!(get_env("PV"), -1);
