@@ -9,25 +9,24 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: pkgcraft-c
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
         rust-version: ['1.56.0', 'stable']
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        path: pkgcraft-c
 
     - name: Checkout pkgcraft
       uses: actions/checkout@v2
       with:
         repository: pkgcraft/pkgcraft
         path: pkgcraft
+
+    - name: Move pkgcraft into expected location
+      run: mv pkgcraft ../
+
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Set up rust toolchain ${{ matrix.rust-version }}
       uses: actions-rs/toolchain@v1
@@ -40,7 +39,6 @@ jobs:
     - name: Set up rust cache
       uses: Swatinem/rust-cache@v1
       with:
-        working-directory: pkgcraft-c
         cache-on-failure: true
 
     - name: Install cargo-c
@@ -51,20 +49,18 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: pkgcraft-c
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        path: pkgcraft-c
-
     - name: Checkout pkgcraft
       uses: actions/checkout@v2
       with:
         repository: pkgcraft/pkgcraft
         path: pkgcraft
+
+    - name: Move pkgcraft into expected location
+      run: mv pkgcraft ../
+
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Set up rust toolchain
       uses: actions-rs/toolchain@v1
@@ -80,13 +76,9 @@ jobs:
     - name: Set up rust cache
       uses: Swatinem/rust-cache@v1
       with:
-        working-directory: pkgcraft-c
         cache-on-failure: true
 
     - name: Run clippy
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        # workaround since working-directory isn't supported yet
-        # https://github.com/actions-rs/clippy-check/issues/28
-        args: --manifest-path pkgcraft-c/Cargo.toml
