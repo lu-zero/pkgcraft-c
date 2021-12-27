@@ -1,8 +1,9 @@
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 
 use pkgcraft::bash::{parse, version_split};
 
-use super::{args_to_vec, get_env};
+use super::args_to_vec;
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
@@ -18,8 +19,17 @@ use crate::Error;
 /// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
 /// valid UTF-8.
 #[no_mangle]
-pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn ver_rs(
+    argc: c_int,
+    argv: &*mut *mut c_char,
+    pv_ptr: &*mut c_char,
+) -> c_int {
     let mut args = unsafe { &args_to_vec(argc, argv)[1..] };
+    let pv = match pv_ptr.is_null() {
+        true => "",
+        false => unsafe { CStr::from_ptr(*pv_ptr).to_str().unwrap() },
+    };
+
     let ver = match args.len() {
         n if n < 2 => {
             let err = Error::new(format!("requires 2 or more args, got {}", n));
@@ -27,12 +37,12 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
             return -1;
         }
 
-        // even number of args pulls the version from PV in the environment
-        n if n % 2 == 0 => unwrap_or_return!(get_env("PV"), -1),
+        // even number of args uses $PV
+        n if n % 2 == 0 => pv,
 
         // odd number of args uses the last arg as the version
         _ => {
-            let ver = args.last().unwrap().to_string();
+            let ver = args.last().unwrap();
             args = &args[..args.len() - 1];
             ver
         }
@@ -40,7 +50,7 @@ pub unsafe extern "C" fn ver_rs(argc: c_int, argv: &*mut *mut c_char) -> c_int {
 
     // Split version string into separators and components, note that the version string doesn't
     // have to follow the spec since args like ".1.2.3" are allowed.
-    let mut version_parts = version_split(&ver);
+    let mut version_parts = version_split(ver);
 
     // iterate over (range, separator) pairs
     let mut args_iter = args.chunks_exact(2);
