@@ -11,20 +11,18 @@ use crate::Error;
 /// Perform string substitution on package version strings.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
 ///
-/// Operates on argc and argv passed directly from C.
-///
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
+/// Behavior is undefined if args is not a pointer to a length args_len array of
+/// valid UTF-8 strings.
 #[no_mangle]
 pub unsafe extern "C" fn ver_rs(
-    argc: c_int,
-    argv: &*mut *mut c_char,
+    args: &*mut *mut c_char,
+    args_len: c_int,
     pv_ptr: &*mut c_char,
 ) -> c_int {
-    let mut args = unsafe { &args_to_vec(argc, argv)[1..] };
+    let mut args = unsafe { args_to_vec(args, args_len) };
     let pv = match pv_ptr.is_null() {
         true => "",
         false => unsafe { CStr::from_ptr(*pv_ptr).to_str().unwrap() },
@@ -41,11 +39,7 @@ pub unsafe extern "C" fn ver_rs(
         n if n % 2 == 0 => pv,
 
         // odd number of args uses the last arg as the version
-        _ => {
-            let ver = args.last().unwrap();
-            args = &args[..args.len() - 1];
-            ver
-        }
+        _ => args.pop().unwrap(),
     };
 
     // Split version string into separators and components, note that the version string doesn't

@@ -10,14 +10,14 @@ pub mod ver_cut;
 pub mod ver_rs;
 pub mod ver_test;
 
-/// Convert an array of string pointers into a vector of &str.
+/// Convert an array of string pointers into Vec<&str>.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
-unsafe fn args_to_vec(argc: c_int, argv: &*mut *mut c_char) -> Vec<&str> {
-    let args_len: usize = argc.try_into().unwrap();
-    let args: Vec<&str> = unsafe { slice::from_raw_parts(*argv, args_len) }
+/// Behavior is undefined if args is not a pointer to a length args_len array of
+/// valid UTF-8 strings.
+unsafe fn args_to_vec(args: &*mut *mut c_char, args_len: c_int) -> Vec<&str> {
+    let args_len: usize = args_len.try_into().unwrap();
+    let args: Vec<&str> = unsafe { slice::from_raw_parts(*args, args_len) }
         .iter()
         .map(|s| unsafe { CStr::from_ptr(*s).to_str().unwrap() })
         .collect();

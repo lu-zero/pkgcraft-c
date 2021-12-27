@@ -12,21 +12,19 @@ use crate::Error;
 /// Perform version testing as defined in the spec.
 /// https://projects.gentoo.org/pms/latest/pms.html#x1-13400012.3.14
 ///
-/// Operates on argc and argv passed directly from C.
-///
 /// Returns 0 if the specified test is true, 1 otherwise.
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
+/// Behavior is undefined if args is not a pointer to a length args_len array of
+/// valid UTF-8 strings.
 #[no_mangle]
 pub unsafe extern "C" fn ver_test(
-    argc: c_int,
-    argv: &*mut *mut c_char,
+    args: &*mut *mut c_char,
+    args_len: c_int,
     pvr_ptr: &*mut c_char,
 ) -> c_int {
-    let args = unsafe { &args_to_vec(argc, argv)[1..] };
+    let args = unsafe { args_to_vec(args, args_len) };
     let pvr = match pvr_ptr.is_null() {
         true => "",
         false => unsafe { CStr::from_ptr(*pvr_ptr).to_str().unwrap() },

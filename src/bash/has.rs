@@ -6,16 +6,14 @@ use crate::Error;
 
 /// Returns 0 if the first argument is found in the list of subsequent arguments, 1 otherwise.
 ///
-/// Operates on argc and argv passed directly from C.
-///
 /// Returns -1 if an error occurred.
 ///
 /// # Safety
-/// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
-/// valid UTF-8.
+/// Behavior is undefined if args is not a pointer to a length args_len array of
+/// valid UTF-8 strings.
 #[no_mangle]
-pub unsafe extern "C" fn has(argc: c_int, argv: &*mut *mut c_char) -> c_int {
-    let args = unsafe { &args_to_vec(argc, argv)[1..] };
+pub unsafe extern "C" fn has(args: &*mut *mut c_char, args_len: c_int) -> c_int {
+    let args = unsafe { args_to_vec(args, args_len) };
 
     let needle = match args.first() {
         Some(s) => s,
