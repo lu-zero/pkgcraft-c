@@ -1,9 +1,10 @@
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
 use pkgcraft::atom::Version;
 
-use super::{args_to_vec, get_env};
+use super::args_to_vec;
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 use crate::Error;
@@ -20,18 +21,27 @@ use crate::Error;
 /// Behavior is undefined if argv is not a pointer to a length argc array of strings containing
 /// valid UTF-8.
 #[no_mangle]
-pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn ver_test(
+    argc: c_int,
+    argv: &*mut *mut c_char,
+    pvr_ptr: &*mut c_char,
+) -> c_int {
     let args = unsafe { &args_to_vec(argc, argv)[1..] };
+    let pvr = match pvr_ptr.is_null() {
+        true => "",
+        false => unsafe { CStr::from_ptr(*pvr_ptr).to_str().unwrap() },
+    };
+
     let (lhs, op, rhs) = match args.len() {
         2 => {
-            let pvr = unwrap_or_return!(get_env("PVR"), -1);
-            (pvr, args[0].to_string(), args[1].to_string())
+            if pvr.is_empty() {
+                let err = Error::new("$PVR is undefined");
+                update_last_error(err);
+                return -1;
+            }
+            (pvr, args[0], args[1])
         }
-        3 => (
-            args[0].to_string(),
-            args[1].to_string(),
-            args[2].to_string(),
-        ),
+        3 => (args[0], args[1], args[2]),
         n => {
             let err = Error::new(format!("only accepts 2 or 3 args, got {}", n));
             update_last_error(err);
@@ -39,10 +49,10 @@ pub unsafe extern "C" fn ver_test(argc: c_int, argv: &*mut *mut c_char) -> c_int
         }
     };
 
-    let ver_lhs = unwrap_or_return!(Version::from_str(&lhs), -1);
-    let ver_rhs = unwrap_or_return!(Version::from_str(&rhs), -1);
+    let ver_lhs = unwrap_or_return!(Version::from_str(lhs), -1);
+    let ver_rhs = unwrap_or_return!(Version::from_str(rhs), -1);
 
-    let ret = match op.as_ref() {
+    let ret = match op {
         "-eq" => ver_lhs == ver_rhs,
         "-ne" => ver_lhs != ver_rhs,
         "-lt" => ver_lhs < ver_rhs,
