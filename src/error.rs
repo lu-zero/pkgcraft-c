@@ -64,7 +64,7 @@ pub(crate) fn update_last_error<E: std::error::Error + 'static>(err: E) {
 /// The caller is expected to free the error string using error_message_free() after they're
 /// finished using it.
 #[no_mangle]
-pub extern "C" fn last_error_message() -> *mut c_char {
+pub extern "C" fn pkgcraft_last_error() -> *mut c_char {
     // Retrieve the most recent error, clearing it in the process.
     let last_error: Option<Box<dyn std::error::Error>> =
         LAST_ERROR.with(|prev| prev.borrow_mut().take());
@@ -76,15 +76,15 @@ pub extern "C" fn last_error_message() -> *mut c_char {
     }
 }
 
-/// Free an error message.
+/// Free a string previously allocated by rust.
 ///
 /// # Safety
-/// The err argument should only correspond to a string received from last_error_message().
+/// This should only be called against string pointers obtained from rust.
 #[no_mangle]
-pub unsafe extern "C" fn error_message_free(err: *mut c_char) {
-    if err.is_null() {
+pub unsafe extern "C" fn pkgcraft_free_str(s: *mut c_char) {
+    if s.is_null() {
         return;
     }
 
-    unsafe { drop(CString::from_raw(err as *mut _)) };
+    unsafe { drop(CString::from_raw(s as *mut _)) };
 }

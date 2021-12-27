@@ -16,7 +16,7 @@ int main (int argc, char **argv) {
 	exit(1);
     }
 
-    a = str_to_atom(atom, NULL);
+    a = pkgcraft_atom(atom, NULL);
 
     assert(strcmp(a->category, getenv("category")) == 0);
     assert(strcmp(a->package, getenv("package")) == 0);
@@ -49,7 +49,7 @@ int main (int argc, char **argv) {
 	assert(a->repo == NULL);
     }
 
-    atom_free(a);
+    pkgcraft_atom_free(a);
 
     return 0;
 }

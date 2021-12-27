@@ -12,7 +12,7 @@ use crate::Error;
 /// Behavior is undefined if args is not a pointer to a length args_len array of
 /// valid UTF-8 strings.
 #[no_mangle]
-pub unsafe extern "C" fn has(args: &*mut *mut c_char, args_len: c_int) -> c_int {
+pub unsafe extern "C" fn pkgcraft_has(args: &*mut *mut c_char, args_len: c_int) -> c_int {
     let args = unsafe { args_to_vec(args, args_len) };
 
     let needle = match args.first() {
@@ -36,7 +36,7 @@ pub unsafe extern "C" fn has(args: &*mut *mut c_char, args_len: c_int) -> c_int 
 /// Behavior is undefined if args is not a pointer to a length args_len array of
 /// valid UTF-8 strings.
 #[no_mangle]
-pub unsafe extern "C" fn hasv(args: &*mut *mut c_char, args_len: c_int) -> c_int {
+pub unsafe extern "C" fn pkgcraft_hasv(args: &*mut *mut c_char, args_len: c_int) -> c_int {
     let args = unsafe { args_to_vec(args, args_len) };
 
     let needle = match args.first() {

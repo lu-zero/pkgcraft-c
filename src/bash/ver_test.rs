@@ -19,7 +19,7 @@ use crate::Error;
 /// Behavior is undefined if args is not a pointer to a length args_len array of
 /// valid UTF-8 strings.
 #[no_mangle]
-pub unsafe extern "C" fn ver_test(
+pub unsafe extern "C" fn pkgcraft_ver_test(
     args: &*mut *mut c_char,
     args_len: c_int,
     pvr_ptr: &*mut c_char,

@@ -30,7 +30,7 @@ pub struct Atom {
 /// # Safety
 /// The atom and eapi arguments should point to valid strings.
 #[no_mangle]
-pub unsafe extern "C" fn str_to_atom(atom: *const c_char, eapi: *const c_char) -> *mut Atom {
+pub unsafe extern "C" fn pkgcraft_atom(atom: *const c_char, eapi: *const c_char) -> *mut Atom {
     if atom.is_null() {
         let err = Error::new("no atom string provided");
         update_last_error(err);
@@ -148,7 +148,7 @@ pub unsafe fn atom_to_rust(atom: *mut Atom) -> Result<atom::Atom> {
 /// # Safety
 /// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
-pub unsafe extern "C" fn atom_key(atom: *mut Atom) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_key(atom: *mut Atom) -> *const c_char {
     let key = match unsafe { atom_to_rust(atom) } {
         Ok(a) => a.key(),
         Err(e) => {
@@ -166,7 +166,7 @@ pub unsafe extern "C" fn atom_key(atom: *mut Atom) -> *const c_char {
 /// # Safety
 /// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
-pub unsafe extern "C" fn atom_cpv(atom: *mut Atom) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: *mut Atom) -> *const c_char {
     let cpv = match unsafe { atom_to_rust(atom) } {
         Ok(a) => a.cpv(),
         Err(e) => {
@@ -183,7 +183,7 @@ pub unsafe extern "C" fn atom_cpv(atom: *mut Atom) -> *const c_char {
 /// # Safety
 /// The atom argument should only correspond to an Atom received from str_to_atom().
 #[no_mangle]
-pub unsafe extern "C" fn atom_free(atom: *mut Atom) {
+pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut Atom) {
     if atom.is_null() {
         return;
     }
