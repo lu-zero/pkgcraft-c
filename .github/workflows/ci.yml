@@ -44,7 +44,24 @@ jobs:
       run: cargo install cargo-c
 
     - name: Build C library
-      run: cargo cbuild
+      run: cargo cinstall --prefix=${PWD}/pkgcraft --pkgconfigdir=${PWD}/pkgcraft
+
+    - name: Install meson
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: pip install meson
+
+    - name: Install ninja
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build
+
+    - name: Run tests
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: |
+        export PKG_CONFIG_PATH=pkgcraft
+        meson setup build
+        meson test -C build
 
   lint:
     runs-on: ubuntu-latest
