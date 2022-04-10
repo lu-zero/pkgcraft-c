@@ -62,7 +62,9 @@ jobs:
         restore-keys: v1-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-
 
     - name: Install cargo-c
-      run: cargo install cargo-c
+      run: |
+        # ignore return value since `cargo install` errors out when already installed
+        cargo install cargo-c || true
 
     - name: Build C library
       run: cargo cinstall --prefix=${PWD}/pkgcraft --pkgconfigdir=${PWD}/pkgcraft
