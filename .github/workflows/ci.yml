@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout scallop
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: pkgcraft/scallop
         path: scallop
@@ -26,7 +26,7 @@ jobs:
       run: mv scallop ../
 
     - name: Checkout pkgcraft
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: pkgcraft/pkgcraft
         path: pkgcraft
@@ -35,7 +35,7 @@ jobs:
       run: mv pkgcraft ../
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up rust toolchain
       uses: actions-rs/toolchain@v1
@@ -46,7 +46,7 @@ jobs:
         override: true
 
     - name: Set up rust cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout scallop
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: pkgcraft/scallop
         path: scallop
@@ -95,7 +95,7 @@ jobs:
       run: mv scallop ../
 
     - name: Checkout pkgcraft
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: pkgcraft/pkgcraft
         path: pkgcraft
@@ -104,7 +104,7 @@ jobs:
       run: mv pkgcraft ../
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up rust toolchain
       uses: actions-rs/toolchain@v1
@@ -116,7 +116,7 @@ jobs:
         components: clippy, rustfmt
 
     - name: Set up rust cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
