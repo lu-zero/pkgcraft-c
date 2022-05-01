@@ -6,7 +6,8 @@
 #include <pkgcraft.h>
 
 int main (int argc, char **argv) {
-	char *atom, *val;
+	char *atom, *expected;
+	const char *value;
 	Atom *a;
 
 	if (argc == 2) {
@@ -18,38 +19,47 @@ int main (int argc, char **argv) {
 
 	a = pkgcraft_atom(atom, NULL);
 
-	assert(strcmp(a->category, getenv("category")) == 0);
-	assert(strcmp(a->package, getenv("package")) == 0);
+	value = pkgcraft_atom_key(a);
+	assert(strcmp(value, "cat/pkg") == 0);
+	value = pkgcraft_atom_category(a);
+	assert(strcmp(value, getenv("category")) == 0);
+	value = pkgcraft_atom_package(a);
+	assert(strcmp(value, getenv("package")) == 0);
 
-	val = getenv("version");
-	if (val != NULL) {
-		assert(strcmp(a->version, val) == 0);
+	value = pkgcraft_atom_version(a);
+	expected = getenv("version");
+	if (expected != NULL) {
+		assert(strcmp(value, expected) == 0);
 	} else {
-		assert(a->version == NULL);
+		assert(strcmp(value, "") == 0);
 	}
 
-	val = getenv("slot");
-	if (val != NULL) {
-		assert(strcmp(a->slot, val) == 0);
+	value = pkgcraft_atom_slot(a);
+	expected = getenv("slot");
+	if (expected != NULL) {
+		assert(strcmp(value, expected) == 0);
 	} else {
-		assert(a->slot == NULL);
+		assert(strcmp(value, "") == 0);
 	}
 
-	val = getenv("subslot");
-	if (val != NULL) {
-		assert(strcmp(a->subslot, val) == 0);
+	value = pkgcraft_atom_subslot(a);
+	expected = getenv("subslot");
+	if (expected != NULL) {
+		assert(strcmp(value, expected) == 0);
 	} else {
-		assert(a->subslot == NULL);
+		assert(strcmp(value, "") == 0);
 	}
 
-	val = getenv("repo");
-	if (val != NULL) {
-		assert(strcmp(a->repo, val) == 0);
+	value = pkgcraft_atom_repo(a);
+	expected = getenv("repo");
+	if (expected != NULL) {
+		assert(strcmp(value, expected) == 0);
 	} else {
-		assert(a->repo == NULL);
+		assert(strcmp(value, "") == 0);
 	}
 
 	pkgcraft_atom_free(a);
+	pkgcraft_free_str((char *)value);
 
 	return 0;
 }
