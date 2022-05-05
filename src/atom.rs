@@ -11,7 +11,7 @@ use crate::Error;
 // force an opaque type to be defined in pkgcraft.h
 pub struct Atom;
 
-/// Parse a string into an atom using a specific EAPI. Pass a null pointer for the eapi argument in
+/// Parse a string into an atom using a specific EAPI. Pass NULL for the eapi argument in
 /// order to parse using the latest EAPI with extensions (e.g. support for repo deps).
 ///
 /// # Safety
@@ -58,7 +58,6 @@ macro_rules! ptr_to_atom {
 }
 
 /// Return a given atom's category, e.g. the atom "=cat/pkg-1-r2" has a category of "cat".
-/// Returns a null pointer on error.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -69,7 +68,6 @@ pub unsafe extern "C" fn pkgcraft_atom_category(atom: *mut atom::Atom) -> *const
 }
 
 /// Return a given atom's package, e.g. the atom "=cat/pkg-1-r2" has a package of "pkg".
-/// Returns a null pointer on error.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -80,7 +78,7 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: *mut atom::Atom) -> *const 
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a package of "1-r2".
-/// Returns an empty string if no version exists.
+/// Returns an empty string on nonexistence.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -92,7 +90,7 @@ pub unsafe extern "C" fn pkgcraft_atom_version(atom: *mut atom::Atom) -> *const 
 }
 
 /// Return a given atom's slot, e.g. the atom "=cat/pkg-1-r2:3" has a slot of "3".
-/// Returns a null pointer on error.
+/// Returns an empty string on nonexistence.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -104,7 +102,7 @@ pub unsafe extern "C" fn pkgcraft_atom_slot(atom: *mut atom::Atom) -> *const c_c
 }
 
 /// Return a given atom's subslot, e.g. the atom "=cat/pkg-1-r2:3/4" has a subslot of "4".
-/// Returns a null pointer on error.
+/// Returns an empty string on nonexistence.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -116,7 +114,7 @@ pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: *mut atom::Atom) -> *const 
 }
 
 /// Return a given atom's repo, e.g. the atom "=cat/pkg-1-r2:3/4::repo" has a repo of "repo".
-/// Returns a null pointer on error.
+/// Returns an empty string on nonexistence.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
@@ -128,7 +126,6 @@ pub unsafe extern "C" fn pkgcraft_atom_repo(atom: *mut atom::Atom) -> *const c_c
 }
 
 /// Return a given atom's key, e.g. the atom "=cat/pkg-1-r2" has a key of "cat/pkg".
-/// Returns a null pointer on error.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom received from str_to_atom().
@@ -139,7 +136,6 @@ pub unsafe extern "C" fn pkgcraft_atom_key(atom: *mut atom::Atom) -> *const c_ch
 }
 
 /// Return a given atom's cpv, e.g. the atom "=cat/pkg-1-r2" has a cpv of "cat/pkg-1-r2".
-/// Returns a null pointer on error.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom received from str_to_atom().
