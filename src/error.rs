@@ -79,7 +79,7 @@ pub extern "C" fn pkgcraft_last_error() -> *mut c_char {
 /// Free a string previously allocated by rust.
 ///
 /// # Safety
-/// This should only be called against string pointers obtained from rust.
+/// This should only be called against non-null string pointers obtained from rust.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_free_str(s: *mut c_char) {
     if s.is_null() {
