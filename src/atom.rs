@@ -1,5 +1,6 @@
+use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 use pkgcraft::{atom, eapi};
@@ -55,6 +56,26 @@ macro_rules! ptr_to_atom {
             false => unsafe { &*$x },
         }
     };
+}
+
+/// Compare two atoms returning -1, 0, or 1 if the first atom is less than, equal to, or greater
+/// than the second atom, respectively.
+///
+/// # Safety
+/// The atom arguments should correspond to Atom pointers received from pkgcraft_atom().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_cmp(a1: *mut atom::Atom, a2: *mut atom::Atom) -> c_int {
+    if a1.is_null() || a2.is_null() {
+        panic!("no atom provided");
+    }
+
+    let (a1, a2) = unsafe { (&*a1, &*a2) };
+
+    match a1.cmp(a2) {
+        Ordering::Less => -1,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    }
 }
 
 /// Return a given atom's category, e.g. the atom "=cat/pkg-1-r2" has a category of "cat".
