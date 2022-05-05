@@ -80,14 +80,14 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: *mut atom::Atom) -> *const 
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a package of "1-r2".
-/// Returns a null pointer on error.
+/// Returns an empty string if no version exists.
 ///
 /// # Safety
 /// The atom argument should only correspond to an Atom pointer received from pkgcraft_atom().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_version(atom: *mut atom::Atom) -> *const c_char {
     let atom = ptr_to_atom!(atom);
-    let s = atom.fullver().unwrap_or_else(|| "".into());
+    let s = atom.version().map(|v| v.as_str()).unwrap_or("");
     CString::new(s).unwrap().into_raw()
 }
 
