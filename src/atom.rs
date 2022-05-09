@@ -155,6 +155,16 @@ pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *const 
     CString::new(atom.cpv()).unwrap().into_raw()
 }
 
+/// Return the string for a given atom.
+///
+/// # Safety
+/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *const c_char {
+    let atom = unsafe { atom.as_ref() };
+    CString::new(format!("{atom}")).unwrap().into_raw()
+}
+
 /// Free an atom.
 ///
 /// # Safety
