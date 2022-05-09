@@ -219,6 +219,16 @@ pub unsafe extern "C" fn pkgcraft_version_revision(
     CString::new(s).unwrap().into_raw()
 }
 
+/// Return the string for a given version.
+///
+/// # Safety
+/// The version argument should be a non-null Version pointer received from pkgcraft_version().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_version_str(version: NonNull<atom::Version>) -> *const c_char {
+    let version = unsafe { version.as_ref() };
+    CString::new(version.as_str()).unwrap().into_raw()
+}
+
 /// Free a version.
 ///
 /// # Safety
