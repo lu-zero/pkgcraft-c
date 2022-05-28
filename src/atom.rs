@@ -215,7 +215,7 @@ pub unsafe extern "C" fn pkgcraft_version_revision(
     version: NonNull<atom::Version>,
 ) -> *const c_char {
     let version = unsafe { version.as_ref() };
-    let s = version.revision().map(|r| r.as_str()).unwrap_or("");
+    let s = version.revision().as_str();
     CString::new(s).unwrap().into_raw()
 }
 
