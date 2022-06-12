@@ -1,8 +1,7 @@
 use std::cell::RefCell;
 use std::ffi::CString;
-use std::fmt;
 use std::os::raw::c_char;
-use std::ptr::{self, NonNull};
+use std::{fmt, ptr};
 
 use tracing::{error, warn};
 
@@ -79,8 +78,11 @@ pub extern "C" fn pkgcraft_last_error() -> *mut c_char {
 /// Free a string previously allocated by rust.
 ///
 /// # Safety
-/// This should only be called against non-null string pointers obtained from rust.
+/// This allows calling against NULL since some string-related functions return NULL when
+/// no value exists.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_str_free(s: NonNull<c_char>) {
-    unsafe { drop(CString::from_raw(s.as_ptr())) };
+pub unsafe extern "C" fn pkgcraft_str_free(s: *mut c_char) {
+    if !s.is_null() {
+        unsafe { drop(CString::from_raw(s)) };
+    }
 }
