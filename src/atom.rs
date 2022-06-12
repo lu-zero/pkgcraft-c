@@ -3,7 +3,7 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::ptr::{self, NonNull};
 
-use pkgcraft::{atom, eapi};
+use pkgcraft::{atom, eapi, utils::hash};
 
 use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
@@ -172,6 +172,16 @@ pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *const 
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_free(atom: NonNull<atom::Atom>) {
     let _ = unsafe { Box::from_raw(atom.as_ptr()) };
+}
+
+/// Return the hash value for a given atom.
+///
+/// # Safety
+/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_hash(atom: NonNull<atom::Atom>) -> u64 {
+    let atom = unsafe { atom.as_ref() };
+    hash(atom)
 }
 
 /// Parse a string into a version.
