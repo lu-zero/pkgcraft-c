@@ -55,6 +55,15 @@ int main (int argc, char **argv) {
 		assert(value == NULL);
 	}
 
+	value = pkgcraft_atom_revision(a);
+	expected = getenv("revision");
+	if (expected) {
+		assert(strcmp(value, expected) == 0);
+		pkgcraft_str_free(value);
+	} else {
+		assert(value == NULL);
+	}
+
 	value = pkgcraft_atom_slot(a);
 	expected = getenv("slot");
 	if (expected) {

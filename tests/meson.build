@@ -2,7 +2,9 @@ atom = executable('atom', f'atom.c', dependencies : [pkgcraft])
 test('nonversion', atom, args : ['cat/pkg'], suite: 'atom',
   env : ['category=cat', 'package=pkg'])
 test('version', atom, args : ['=cat/pkg-1'], suite: 'atom',
-  env : ['category=cat', 'package=pkg', 'version=1'])
+  env : ['category=cat', 'package=pkg', 'version=1', 'revision=0'])
+test('revision', atom, args : ['=cat/pkg-1-r2'], suite: 'atom',
+  env : ['category=cat', 'package=pkg', 'version=1-r2', 'revision=2'])
 test('slotted', atom, args : ['cat/pkg:1'], suite: 'atom',
   env : ['category=cat', 'package=pkg', 'slot=1'])
 test('subslot', atom, args : ['cat/pkg:1/2'], suite: 'atom',

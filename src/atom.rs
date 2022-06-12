@@ -88,7 +88,7 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mu
     CString::new(atom.package()).unwrap().into_raw()
 }
 
-/// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a package of "1-r2".
+/// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a version of "1-r2".
 ///
 /// Returns NULL on nonexistence.
 ///
@@ -100,6 +100,21 @@ pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *mu
     match atom.version() {
         None => ptr::null_mut(),
         Some(v) => CString::new(v.as_str()).unwrap().into_raw(),
+    }
+}
+
+/// Return a given atom's revision, e.g. the atom "=cat/pkg-1-r2" has a revision of "2".
+///
+/// Returns NULL on nonexistence.
+///
+/// # Safety
+/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_revision(atom: NonNull<atom::Atom>) -> *mut c_char {
+    let atom = unsafe { atom.as_ref() };
+    match atom.revision() {
+        None => ptr::null_mut(),
+        Some(r) => CString::new(r.as_str()).unwrap().into_raw(),
     }
 }
 
