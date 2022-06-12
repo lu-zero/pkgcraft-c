@@ -72,7 +72,7 @@ pub unsafe extern "C" fn pkgcraft_atom_cmp(
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(atom.category()).unwrap().into_raw()
 }
@@ -82,7 +82,7 @@ pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *c
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(atom.package()).unwrap().into_raw()
 }
@@ -93,7 +93,7 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *co
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     let s = atom.version().map(|v| v.as_str()).unwrap_or("");
     CString::new(s).unwrap().into_raw()
@@ -105,7 +105,7 @@ pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *co
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     let s = atom.slot().unwrap_or("");
     CString::new(s).unwrap().into_raw()
@@ -117,7 +117,7 @@ pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *const
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     let s = atom.subslot().unwrap_or("");
     CString::new(s).unwrap().into_raw()
@@ -129,7 +129,7 @@ pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *co
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     let s = atom.repo().unwrap_or("");
     CString::new(s).unwrap().into_raw()
@@ -140,7 +140,7 @@ pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *const
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(atom.key()).unwrap().into_raw()
 }
@@ -150,7 +150,7 @@ pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *const 
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(atom.cpv()).unwrap().into_raw()
 }
@@ -160,7 +160,7 @@ pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *const 
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(format!("{atom}")).unwrap().into_raw()
 }
@@ -221,9 +221,7 @@ pub unsafe extern "C" fn pkgcraft_version_cmp(
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_revision(
-    version: NonNull<atom::Version>,
-) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_version_revision(version: NonNull<atom::Version>) -> *mut c_char {
     let version = unsafe { version.as_ref() };
     let s = version.revision().as_str();
     CString::new(s).unwrap().into_raw()
@@ -234,7 +232,7 @@ pub unsafe extern "C" fn pkgcraft_version_revision(
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_str(version: NonNull<atom::Version>) -> *const c_char {
+pub unsafe extern "C" fn pkgcraft_version_str(version: NonNull<atom::Version>) -> *mut c_char {
     let version = unsafe { version.as_ref() };
     CString::new(version.as_str()).unwrap().into_raw()
 }
