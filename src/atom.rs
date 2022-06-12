@@ -88,51 +88,63 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mu
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a package of "1-r2".
-/// Returns an empty string on nonexistence.
+///
+/// Returns NULL on nonexistence.
 ///
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
-    let s = atom.version().map(|v| v.as_str()).unwrap_or("");
-    CString::new(s).unwrap().into_raw()
+    match atom.version() {
+        None => ptr::null_mut(),
+        Some(v) => CString::new(v.as_str()).unwrap().into_raw(),
+    }
 }
 
 /// Return a given atom's slot, e.g. the atom "=cat/pkg-1-r2:3" has a slot of "3".
-/// Returns an empty string on nonexistence.
+///
+/// Returns NULL on nonexistence.
 ///
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
-    let s = atom.slot().unwrap_or("");
-    CString::new(s).unwrap().into_raw()
+    match atom.slot() {
+        None => ptr::null_mut(),
+        Some(s) => CString::new(s).unwrap().into_raw(),
+    }
 }
 
 /// Return a given atom's subslot, e.g. the atom "=cat/pkg-1-r2:3/4" has a subslot of "4".
-/// Returns an empty string on nonexistence.
+///
+/// Returns NULL on nonexistence.
 ///
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
-    let s = atom.subslot().unwrap_or("");
-    CString::new(s).unwrap().into_raw()
+    match atom.subslot() {
+        None => ptr::null_mut(),
+        Some(s) => CString::new(s).unwrap().into_raw(),
+    }
 }
 
 /// Return a given atom's repo, e.g. the atom "=cat/pkg-1-r2:3/4::repo" has a repo of "repo".
-/// Returns an empty string on nonexistence.
+///
+/// Returns NULL on nonexistence.
 ///
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
-    let s = atom.repo().unwrap_or("");
-    CString::new(s).unwrap().into_raw()
+    match atom.repo() {
+        None => ptr::null_mut(),
+        Some(s) => CString::new(s).unwrap().into_raw(),
+    }
 }
 
 /// Return a given atom's key, e.g. the atom "=cat/pkg-1-r2" has a key of "cat/pkg".
