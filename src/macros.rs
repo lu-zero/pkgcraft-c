@@ -4,7 +4,7 @@ macro_rules! unwrap_or_return {
         match $e {
             Ok(x) => x,
             Err(e) => {
-                update_last_error(e);
+                $crate::error::update_last_error(e);
                 return $v;
             }
         }

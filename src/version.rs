@@ -5,7 +5,6 @@ use std::ptr::{self, NonNull};
 
 use pkgcraft::{atom, utils::hash};
 
-use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 
 // force opaque types to be defined in pkgcraft.h
