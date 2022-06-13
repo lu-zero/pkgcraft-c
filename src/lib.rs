@@ -3,6 +3,7 @@
 
 pub mod atom;
 pub mod error;
+pub mod version;
 mod macros;
 
 pub use self::error::{Error, Result};
