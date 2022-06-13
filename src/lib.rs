@@ -3,6 +3,7 @@
 
 pub mod atom;
 pub mod error;
+pub mod free;
 mod macros;
 pub mod version;
 
