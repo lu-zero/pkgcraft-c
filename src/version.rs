@@ -69,8 +69,10 @@ pub unsafe extern "C" fn pkgcraft_version_str(version: NonNull<atom::Version>) -
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_free(version: NonNull<atom::Version>) {
-    let _ = unsafe { Box::from_raw(version.as_ptr()) };
+pub unsafe extern "C" fn pkgcraft_version_free(version: *mut atom::Version) {
+    if !version.is_null() {
+        let _ = unsafe { Box::from_raw(version) };
+    }
 }
 
 /// Return the hash value for a given version.
