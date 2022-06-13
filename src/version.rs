@@ -19,7 +19,7 @@ pub struct Version;
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_version(version: *const c_char) -> *mut atom::Version {
     let ver_str = unsafe { unwrap_or_return!(CStr::from_ptr(version).to_str(), ptr::null_mut()) };
-    let ver = unwrap_or_return!(atom::parse::version(ver_str), ptr::null_mut());
+    let ver = unwrap_or_return!(atom::Version::new(ver_str), ptr::null_mut());
     Box::into_raw(Box::new(ver))
 }
 

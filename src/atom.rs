@@ -44,7 +44,7 @@ pub unsafe extern "C" fn pkgcraft_atom(
         },
     };
 
-    let atom = unwrap_or_return!(atom::parse::dep(atom_str, eapi), ptr::null_mut());
+    let atom = unwrap_or_return!(atom::Atom::new(atom_str, eapi), ptr::null_mut());
     Box::into_raw(Box::new(atom))
 }
 
