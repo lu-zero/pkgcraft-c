@@ -6,9 +6,7 @@ use std::ptr::{self, NonNull};
 
 use pkgcraft::{atom, eapi, utils::hash};
 
-use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
-use crate::Error;
 
 // force opaque types to be defined in pkgcraft.h
 pub struct Atom;
@@ -19,32 +17,17 @@ pub struct Atom;
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The atom and eapi arguments should point to valid strings.
+/// The atom argument should be a valid string while eapi can be a string or may be
+/// NULL to use the default EAPI.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom(
-    atom: *const c_char,
+    atom: NonNull<c_char>,
     eapi: *const c_char,
 ) -> *mut atom::Atom {
-    if atom.is_null() {
-        let err = Error::new("no atom string provided");
-        update_last_error(err);
-        return ptr::null_mut();
-    }
-
-    let atom_str = unsafe { unwrap_or_return!(CStr::from_ptr(atom).to_str(), ptr::null_mut()) };
-
-    let eapi = match eapi.is_null() {
-        true => &eapi::EAPI_PKGCRAFT,
-        false => match unsafe { CStr::from_ptr(eapi).to_str() } {
-            Ok(s) => unwrap_or_return!(eapi::get_eapi(s), ptr::null_mut()),
-            Err(e) => {
-                update_last_error(e);
-                return ptr::null_mut();
-            }
-        },
-    };
-
-    let atom = unwrap_or_return!(atom::Atom::new(atom_str, eapi), ptr::null_mut());
+    let atom =
+        unsafe { unwrap_or_return!(CStr::from_ptr(atom.as_ref()).to_str(), ptr::null_mut()) };
+    let eapi = unwrap_or_return!(eapi::IntoEapi::into_eapi(eapi), ptr::null_mut());
+    let atom = unwrap_or_return!(atom::Atom::new(atom, eapi), ptr::null_mut());
     Box::into_raw(Box::new(atom))
 }
 

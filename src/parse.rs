@@ -4,7 +4,6 @@ use std::ptr;
 
 use pkgcraft::{atom, eapi};
 
-use crate::error::update_last_error;
 use crate::macros::unwrap_or_return;
 
 /// Parse an atom string.
@@ -18,18 +17,8 @@ pub unsafe extern "C" fn pkgcraft_parse_atom(
     cstr: *const c_char,
     eapi: *const c_char,
 ) -> *const c_char {
-    let eapi = match eapi.is_null() {
-        true => &eapi::EAPI_PKGCRAFT,
-        false => match unsafe { CStr::from_ptr(eapi).to_str() } {
-            Ok(s) => unwrap_or_return!(eapi::get_eapi(s), ptr::null_mut()),
-            Err(e) => {
-                update_last_error(e);
-                return ptr::null_mut();
-            }
-        },
-    };
-
     let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
+    let eapi = unwrap_or_return!(eapi::IntoEapi::into_eapi(eapi), ptr::null_mut());
     unwrap_or_return!(atom::Atom::valid(s, eapi), ptr::null_mut());
     cstr
 }
