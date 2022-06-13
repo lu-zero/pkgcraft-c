@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::ptr;
+use std::ptr::{self, NonNull};
 
 use pkgcraft::{atom, eapi};
 
@@ -14,13 +14,14 @@ use crate::macros::unwrap_or_return;
 /// The argument should point to a valid UTF-8 string.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_parse_atom(
-    cstr: *const c_char,
+    atom: NonNull<c_char>,
     eapi: *const c_char,
-) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
+) -> *mut c_char {
+    let atom = atom.as_ptr();
+    let s = unsafe { unwrap_or_return!(CStr::from_ptr(atom).to_str(), ptr::null_mut()) };
     let eapi = unwrap_or_return!(eapi::IntoEapi::into_eapi(eapi), ptr::null_mut());
     unwrap_or_return!(atom::Atom::valid(s, eapi), ptr::null_mut());
-    cstr
+    atom
 }
 
 /// Parse an atom category string.
