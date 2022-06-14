@@ -31,6 +31,20 @@ pub unsafe extern "C" fn pkgcraft_atom(
     Box::into_raw(Box::new(atom))
 }
 
+/// Parse a CPV string into an atom.
+///
+/// Returns NULL on error.
+///
+/// # Safety
+/// The atom argument should be a valid UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_cpv(atom: NonNull<c_char>) -> *mut atom::Atom {
+    let atom =
+        unsafe { unwrap_or_return!(CStr::from_ptr(atom.as_ref()).to_str(), ptr::null_mut()) };
+    let atom = unwrap_or_return!(atom::cpv(atom), ptr::null_mut());
+    Box::into_raw(Box::new(atom))
+}
+
 /// Compare two atoms returning -1, 0, or 1 if the first atom is less than, equal to, or greater
 /// than the second atom, respectively.
 ///
