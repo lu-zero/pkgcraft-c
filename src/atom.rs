@@ -236,7 +236,7 @@ pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *mut c_
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut atom::Atom) {
     if !atom.is_null() {
-        let _ = unsafe { Box::from_raw(atom) };
+        unsafe { drop(Box::from_raw(atom)) };
     }
 }
 
