@@ -8,7 +8,8 @@ use pkgcraft::{atom, eapi, utils::hash};
 
 use crate::macros::unwrap_or_return;
 
-// force opaque types to be defined in pkgcraft.h
+// explicitly force symbols to be exported
+// TODO: https://github.com/rust-lang/rfcs/issues/2771
 pub struct Atom;
 pub type Blocker = atom::Blocker;
 
