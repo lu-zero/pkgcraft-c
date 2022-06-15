@@ -91,9 +91,9 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mu
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> u8 {
+pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> atom::Blocker {
     let atom = unsafe { atom.as_ref() };
-    atom.blocker() as u8
+    atom.blocker()
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a version of "1-r2".
