@@ -10,6 +10,7 @@ use crate::macros::unwrap_or_return;
 
 // force opaque types to be defined in pkgcraft.h
 pub struct Atom;
+pub type Blocker = atom::Blocker;
 
 /// Parse a string into an atom using a specific EAPI. Pass NULL for the eapi argument in
 /// order to parse using the latest EAPI with extensions (e.g. support for repo deps).
@@ -82,6 +83,16 @@ pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *m
 pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
     CString::new(atom.package()).unwrap().into_raw()
+}
+
+/// Return a given atom's blocker status, e.g. the atom "!cat/pkg" has a weak blocker.
+///
+/// # Safety
+/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> u8 {
+    let atom = unsafe { atom.as_ref() };
+    atom.blocker() as u8
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a version of "1-r2".
