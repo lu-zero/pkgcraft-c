@@ -6,7 +6,8 @@ C bindings for pkgcraft.
 
 ## Development
 
-Requirements: [cargo-c](https://crates.io/crates/cargo-c) and everything required to build pkgcraft
+Requirements: [cargo-c](https://crates.io/crates/cargo-c), meson (to build and
+run the tests), and everything required to build pkgcraft
 
 Use the following commands to set up a dev environment:
 
@@ -16,5 +17,8 @@ git clone --recursive-submodules https://github.com/pkgcraft/pkgcraft-workspace.
 cd pkgcraft-workspace
 
 # build the C library
-./build-c-lib
+source ./build pkgcraft-c
+
+# build and run the tests
+meson setup target/build pkgcraft-c && meson test -C target/build
 ```
