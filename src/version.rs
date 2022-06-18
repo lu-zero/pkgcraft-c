@@ -9,6 +9,7 @@ use crate::macros::unwrap_or_return;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
+/// Opaque wrapper for Version objects.
 pub struct Version;
 
 /// Parse a string into a version.

@@ -10,6 +10,7 @@ use crate::macros::unwrap_or_return;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
+/// Opaque wrapper for Atom objects.
 pub struct Atom;
 pub type Blocker = atom::Blocker;
 
