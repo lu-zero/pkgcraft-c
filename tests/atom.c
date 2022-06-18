@@ -5,17 +5,16 @@
 
 #include <pkgcraft.h>
 
-char *join(char **strs, char delim) {
+char *join(char **strs, char delim, size_t length) {
 	char *res = calloc(128, sizeof(char));
 	char sep[2] = { delim, '\0' };
-	int i = 0;
+	size_t i;
 
-	while (strs[i]) {
+	for (i = 0; i < length; i++) {
 		if (i > 0) {
 			strcat(res, sep);
 		}
 		strcat(res, strs[i]);
-		i += 1;
 	}
 
 	return res;
@@ -25,6 +24,7 @@ int main (int argc, char **argv) {
 	char *atom, *expected, *concat_str;
 	char *value;
 	char **array_value;
+	size_t length;
 	Atom *a;
 
 	if (argc == 2) {
@@ -91,12 +91,12 @@ int main (int argc, char **argv) {
 		assert(value == NULL);
 	}
 
-	array_value = pkgcraft_atom_use_deps(a);
+	array_value = pkgcraft_atom_use_deps(a, &length);
 	expected = getenv("use_deps");
 	if (expected) {
-		concat_str = join(array_value, ',');
+		concat_str = join(array_value, ',', length);
 		assert(strcmp(concat_str, expected) == 0);
-		pkgcraft_str_array_free(array_value);
+		pkgcraft_str_array_free(array_value, length);
 		free(concat_str);
 	} else {
 		assert(array_value == NULL);

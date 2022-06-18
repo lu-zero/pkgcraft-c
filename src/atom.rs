@@ -180,14 +180,18 @@ pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: NonNull<atom::Atom>) -> *mu
 /// # Safety
 /// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_use_deps(atom: NonNull<atom::Atom>) -> *mut *mut c_char {
+pub unsafe extern "C" fn pkgcraft_atom_use_deps(
+    atom: NonNull<atom::Atom>,
+    len: *mut usize,
+) -> *mut *mut c_char {
+    // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
     let atom = unsafe { atom.as_ref() };
     match atom.use_deps() {
         None => ptr::null_mut(),
         Some(use_deps) => {
             let use_strs: Vec<_> = use_deps.iter().map(|&s| CString::new(s).unwrap()).collect();
+            unsafe { *len = use_strs.len() };
             let mut use_ptrs: Vec<_> = use_strs.iter().map(|s| s.as_ptr() as *mut _).collect();
-            use_ptrs.push(ptr::null_mut());
             let p = use_ptrs.as_mut_ptr();
             mem::forget(use_strs);
             mem::forget(use_ptrs);
