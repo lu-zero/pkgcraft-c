@@ -6,6 +6,5 @@ pub mod error;
 pub mod free;
 mod macros;
 pub mod parse;
-pub mod version;
 
 pub use self::error::{Error, Result};
