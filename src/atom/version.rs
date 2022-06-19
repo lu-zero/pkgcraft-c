@@ -25,6 +25,19 @@ pub unsafe extern "C" fn pkgcraft_version(version: *const c_char) -> *mut atom::
     Box::into_raw(Box::new(ver))
 }
 
+/// Parse a string into a version with an operator.
+///
+/// Returns NULL on error.
+///
+/// # Safety
+/// The version argument should point to a valid string.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_version_with_op(version: *const c_char) -> *mut atom::Version {
+    let ver_str = unsafe { unwrap_or_return!(CStr::from_ptr(version).to_str(), ptr::null_mut()) };
+    let ver = unwrap_or_return!(atom::Version::new_with_op(ver_str), ptr::null_mut());
+    Box::into_raw(Box::new(ver))
+}
+
 /// Compare two versions returning -1, 0, or 1 if the first version is less than, equal to, or greater
 /// than the second version, respectively.
 ///
