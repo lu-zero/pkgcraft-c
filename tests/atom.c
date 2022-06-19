@@ -25,7 +25,8 @@ int main (int argc, char **argv) {
 	char *value;
 	char **array_value;
 	size_t length;
-	Atom *a;
+	Atom *a = NULL;
+	const Version *v;
 
 	if (argc == 2) {
 		atom = argv[1];
@@ -46,13 +47,14 @@ int main (int argc, char **argv) {
 	assert(strcmp(value, getenv("package")) == 0);
 	pkgcraft_str_free(value);
 
-	value = pkgcraft_atom_version(a);
 	expected = getenv("version");
+	v = pkgcraft_atom_version(a);
 	if (expected) {
+		value = pkgcraft_version_str((Version *)v);
 		assert(strcmp(value, expected) == 0);
 		pkgcraft_str_free(value);
 	} else {
-		assert(value == NULL);
+		assert(v == NULL);
 	}
 
 	value = pkgcraft_atom_revision(a);

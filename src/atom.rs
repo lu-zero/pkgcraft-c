@@ -104,13 +104,15 @@ pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> ato
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom(). Also, note
+/// that the returned pointer is borrowed from its related Atom object and should never be freed
+/// manually.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *mut c_char {
+pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *const atom::Version {
     let atom = unsafe { atom.as_ref() };
     match atom.version() {
         None => ptr::null_mut(),
-        Some(v) => CString::new(v.as_str()).unwrap().into_raw(),
+        Some(v) => v,
     }
 }
 
