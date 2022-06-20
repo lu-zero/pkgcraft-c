@@ -23,5 +23,8 @@ int main (int argc, char **argv) {
 	value = pkgcraft_atom_cmp(a1, a2);
 	assert(value == expected);
 
+	pkgcraft_atom_free(a1);
+	pkgcraft_atom_free(a2);
+
 	return 0;
 }
