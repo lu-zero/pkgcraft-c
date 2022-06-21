@@ -1,6 +1,5 @@
 use std::ffi::CString;
 use std::os::raw::c_char;
-use std::slice;
 
 /// Free a string previously allocated by rust.
 ///
@@ -23,8 +22,8 @@ pub unsafe extern "C" fn pkgcraft_str_free(s: *mut c_char) {
 pub unsafe extern "C" fn pkgcraft_str_array_free(array: *mut *mut c_char, len: usize) {
     if !array.is_null() {
         unsafe {
-            for s in slice::from_raw_parts(array, len) {
-                drop(CString::from_raw(*s));
+            for s in Vec::from_raw_parts(array, len, len).into_iter() {
+                drop(CString::from_raw(s));
             }
         }
     }

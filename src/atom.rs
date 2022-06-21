@@ -194,13 +194,15 @@ pub unsafe extern "C" fn pkgcraft_atom_use_deps(
     match atom.use_deps() {
         None => ptr::null_mut(),
         Some(use_deps) => {
-            let use_strs: Vec<_> = use_deps.iter().map(|&s| CString::new(s).unwrap()).collect();
-            unsafe { *len = use_strs.len() };
-            let mut use_ptrs: Vec<_> = use_strs.iter().map(|s| s.as_ptr() as *mut _).collect();
-            let p = use_ptrs.as_mut_ptr();
-            mem::forget(use_strs);
-            mem::forget(use_ptrs);
-            p
+            let mut ptrs: Vec<_> = use_deps
+                .into_iter()
+                .map(|s| CString::new(s).unwrap().into_raw())
+                .collect();
+            ptrs.shrink_to_fit();
+            unsafe { *len = ptrs.len() };
+            let ptr = ptrs.as_mut_ptr();
+            mem::forget(ptrs);
+            ptr
         }
     }
 }
