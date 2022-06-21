@@ -1,7 +1,7 @@
 use std::ffi::{CStr, CString};
+use std::mem;
 use std::os::raw::{c_char, c_int};
 use std::ptr::{self, NonNull};
-use std::{mem, slice};
 
 use pkgcraft::{config, repo};
 
@@ -81,6 +81,7 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
                     Box::into_raw(Box::new(r))
                 })
                 .collect();
+            ptrs.shrink_to_fit();
             let p = ptrs.as_mut_ptr();
             mem::forget(ptrs);
             p
@@ -96,7 +97,7 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 pub unsafe extern "C" fn pkgcraft_repos_free(array: *mut *mut RepoConfig, len: usize) {
     if !array.is_null() {
         unsafe {
-            for r in slice::from_raw_parts(array, len) {
+            for r in Vec::from_raw_parts(array, len, len).iter() {
                 let repo = Box::from_raw(*r);
                 drop(CString::from_raw(repo.id));
             }
