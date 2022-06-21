@@ -97,8 +97,8 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 pub unsafe extern "C" fn pkgcraft_repos_free(array: *mut *mut RepoConfig, len: usize) {
     if !array.is_null() {
         unsafe {
-            for r in Vec::from_raw_parts(array, len, len).iter() {
-                let repo = Box::from_raw(*r);
+            for r in Vec::from_raw_parts(array, len, len).into_iter() {
+                let repo = Box::from_raw(r);
                 drop(CString::from_raw(repo.id));
             }
         }
