@@ -1,23 +1,25 @@
 use std::cmp::Ordering;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 use pkgcraft::repo::Repository;
-use pkgcraft::{repo, utils::hash};
+use pkgcraft::{pkg, repo, utils::hash};
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
 /// Opaque wrapper for Repo objects.
 pub struct Repo;
+/// Opaque wrapper for PkgIter objects.
+pub struct PkgIter;
 
 /// Return a given repo's id.
 ///
 /// # Safety
-/// The repo argument should be a non-null Repo pointer.
+/// The ptr argument should be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_id(repo: NonNull<repo::Repo>) -> *mut c_char {
-    let repo = unsafe { repo.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_id(ptr: NonNull<repo::Repo>) -> *mut c_char {
+    let repo = unsafe { ptr.as_ref() };
     CString::new(repo.id()).unwrap().into_raw()
 }
 
@@ -25,7 +27,7 @@ pub unsafe extern "C" fn pkgcraft_repo_id(repo: NonNull<repo::Repo>) -> *mut c_c
 /// than the second repo, respectively.
 ///
 /// # Safety
-/// The repo arguments should be non-null Repo pointers.
+/// The ptr arguments should be non-null Repo pointers.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_repo_cmp(
     ptr1: NonNull<repo::Repo>,
@@ -43,9 +45,47 @@ pub unsafe extern "C" fn pkgcraft_repo_cmp(
 /// Return the hash value for a given repo.
 ///
 /// # Safety
-/// The repo argument should be a non-null Repo pointer.
+/// The ptr argument should be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_hash(repo: NonNull<repo::Repo>) -> u64 {
-    let repo = unsafe { repo.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_hash(ptr: NonNull<repo::Repo>) -> u64 {
+    let repo = unsafe { ptr.as_ref() };
     hash(repo)
+}
+
+/// Return a package iterator for a given repo.
+///
+/// # Safety
+/// The ptr argument should be a non-null Repo pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(
+    ptr: NonNull<repo::Repo>,
+) -> *mut repo::PkgIter<'a> {
+    let repo = unsafe { ptr.as_ref() };
+    Box::into_raw(Box::new(repo.iter()))
+}
+
+/// Return the next package from a given package iterator.
+///
+/// Returns NULL when the iterator is empty.
+///
+/// # Safety
+/// The ptr argument should be a non-null PkgIter pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_iter_next(mut ptr: NonNull<repo::PkgIter>) -> *mut pkg::Pkg {
+    let iter = unsafe { ptr.as_mut() };
+    match iter.next() {
+        None => ptr::null_mut(),
+        Some(p) => Box::into_raw(Box::new(p)),
+    }
+}
+
+/// Free a repo iterator.
+///
+/// # Safety
+/// The ptr argument should be a non-null PkgIter pointer received from pkgcraft_repo_iter().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_iter_free(ptr: *mut repo::PkgIter) {
+    if !ptr.is_null() {
+        unsafe { drop(Box::from_raw(ptr)) };
+    }
 }
