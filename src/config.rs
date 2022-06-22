@@ -54,8 +54,6 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
 
 /// Return the repos for a config.
 ///
-/// Returns NULL on nonexistence.
-///
 /// # Safety
 /// The config argument should be a Config pointer received from pkgcraft_config().
 #[no_mangle]
@@ -66,27 +64,22 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
     // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
     let config = unsafe { config.as_ref() };
     let repos: Vec<_> = config.repos.iter().collect();
-    match repos.is_empty() {
-        true => ptr::null_mut(),
-        false => {
-            unsafe { *len = repos.len() };
-            let mut ptrs: Vec<_> = repos
-                .iter()
-                .copied()
-                .map(|(id, r)| {
-                    let r = RepoConfig {
-                        id: CString::new(id).unwrap().into_raw(),
-                        repo: r,
-                    };
-                    Box::into_raw(Box::new(r))
-                })
-                .collect();
-            ptrs.shrink_to_fit();
-            let p = ptrs.as_mut_ptr();
-            mem::forget(ptrs);
-            p
-        }
-    }
+    unsafe { *len = repos.len() };
+    let mut ptrs: Vec<_> = repos
+        .iter()
+        .copied()
+        .map(|(id, r)| {
+            let r = RepoConfig {
+                id: CString::new(id).unwrap().into_raw(),
+                repo: r,
+            };
+            Box::into_raw(Box::new(r))
+        })
+        .collect();
+    ptrs.shrink_to_fit();
+    let p = ptrs.as_mut_ptr();
+    mem::forget(ptrs);
+    p
 }
 
 /// Free an array of configured repos.
