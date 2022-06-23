@@ -57,11 +57,12 @@ pub(crate) fn update_last_error<E: std::error::Error + 'static>(err: E) {
     });
 }
 
-/// Get the most recent error message as a UTF-8 string, if none exists a null pointer is returned.
+/// Get the most recent error message.
+///
+/// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The caller is expected to free the error string using error_message_free() after they're
-/// finished using it.
+/// The caller is expected to free the error string using pkgcraft_str_free().
 #[no_mangle]
 pub extern "C" fn pkgcraft_last_error() -> *mut c_char {
     // Retrieve the most recent error, clearing it in the process.

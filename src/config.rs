@@ -55,7 +55,7 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
 /// Return the repos for a config.
 ///
 /// # Safety
-/// The config argument should be a Config pointer received from pkgcraft_config().
+/// The config argument must be a non-null Config pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_config_repos(
     config: NonNull<config::Config>,
@@ -85,12 +85,13 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 /// Free an array of configured repos.
 ///
 /// # Safety
-/// The array argument should be the value received from pkgcraft_config_repos() or NULL.
+/// The argument must be the value received from pkgcraft_config_repos() or NULL along with the
+/// length of the array.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repos_free(array: *mut *mut RepoConfig, len: usize) {
-    if !array.is_null() {
+pub unsafe extern "C" fn pkgcraft_repos_free(repos: *mut *mut RepoConfig, len: usize) {
+    if !repos.is_null() {
         unsafe {
-            for r in Vec::from_raw_parts(array, len, len).into_iter() {
+            for r in Vec::from_raw_parts(repos, len, len).into_iter() {
                 let repo = Box::from_raw(r);
                 drop(CString::from_raw(repo.id));
             }
@@ -101,7 +102,7 @@ pub unsafe extern "C" fn pkgcraft_repos_free(array: *mut *mut RepoConfig, len: u
 /// Free a config.
 ///
 /// # Safety
-/// The config argument should be a Config pointer received from pkgcraft_config().
+/// The argument must be a Config pointer or NULL.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_config_free(config: *mut config::Config) {
     if !config.is_null() {

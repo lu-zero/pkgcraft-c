@@ -22,7 +22,7 @@ pub type Blocker = atom::Blocker;
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The atom argument should be a valid string while eapi can be a string or may be
+/// The atom argument should be a UTF-8 string while eapi can be a string or may be
 /// NULL to use the default EAPI.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom(
@@ -41,11 +41,10 @@ pub unsafe extern "C" fn pkgcraft_atom(
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The atom argument should be a valid UTF-8 string.
+/// The argument should be a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_cpv(atom: NonNull<c_char>) -> *mut atom::Atom {
-    let atom =
-        unsafe { unwrap_or_return!(CStr::from_ptr(atom.as_ref()).to_str(), ptr::null_mut()) };
+pub unsafe extern "C" fn pkgcraft_cpv(s: NonNull<c_char>) -> *mut atom::Atom {
+    let atom = unsafe { unwrap_or_return!(CStr::from_ptr(s.as_ref()).to_str(), ptr::null_mut()) };
     let atom = unwrap_or_return!(atom::cpv(atom), ptr::null_mut());
     Box::into_raw(Box::new(atom))
 }
@@ -54,7 +53,7 @@ pub unsafe extern "C" fn pkgcraft_cpv(atom: NonNull<c_char>) -> *mut atom::Atom 
 /// than the second atom, respectively.
 ///
 /// # Safety
-/// The atom arguments should be non-null Atom pointers received from pkgcraft_atom().
+/// The arguments must be non-null Atom pointers.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_cmp(
     a1: NonNull<atom::Atom>,
@@ -72,7 +71,7 @@ pub unsafe extern "C" fn pkgcraft_atom_cmp(
 /// Return a given atom's category, e.g. the atom "=cat/pkg-1-r2" has a category of "cat".
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -82,7 +81,7 @@ pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *m
 /// Return a given atom's package, e.g. the atom "=cat/pkg-1-r2" has a package of "pkg".
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -92,7 +91,7 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mu
 /// Return a given atom's blocker status, e.g. the atom "!cat/pkg" has a weak blocker.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> atom::Blocker {
     let atom = unsafe { atom.as_ref() };
@@ -104,9 +103,8 @@ pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> ato
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom(). Also, note
-/// that the returned pointer is borrowed from its related Atom object and should never be freed
-/// manually.
+/// The argument must be a non-null Atom pointer. Also, note that the returned pointer
+/// is borrowed from its related Atom object and should never be freed manually.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *const atom::Version {
     let atom = unsafe { atom.as_ref() };
@@ -121,7 +119,7 @@ pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *co
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_revision(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -136,7 +134,7 @@ pub unsafe extern "C" fn pkgcraft_atom_revision(atom: NonNull<atom::Atom>) -> *m
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -151,7 +149,7 @@ pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -167,7 +165,7 @@ pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mu
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -183,7 +181,7 @@ pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: NonNull<atom::Atom>) -> *mu
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_use_deps(
     atom: NonNull<atom::Atom>,
@@ -212,7 +210,7 @@ pub unsafe extern "C" fn pkgcraft_atom_use_deps(
 /// Returns NULL on nonexistence.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -225,7 +223,7 @@ pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c
 /// Return a given atom's key, e.g. the atom "=cat/pkg-1-r2" has a key of "cat/pkg".
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -235,7 +233,7 @@ pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *mut c_
 /// Return a given atom's cpv, e.g. the atom "=cat/pkg-1-r2" has a cpv of "cat/pkg-1-r2".
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -245,7 +243,7 @@ pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *mut c_
 /// Return the string for a given atom.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *mut c_char {
     let atom = unsafe { atom.as_ref() };
@@ -255,7 +253,7 @@ pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *mut c_
 /// Free an atom.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a Atom pointer or NULL.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut atom::Atom) {
     if !atom.is_null() {
@@ -266,7 +264,7 @@ pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut atom::Atom) {
 /// Return the hash value for a given atom.
 ///
 /// # Safety
-/// The atom argument should be a non-null Atom pointer received from pkgcraft_atom().
+/// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_hash(atom: NonNull<atom::Atom>) -> u64 {
     let atom = unsafe { atom.as_ref() };

@@ -13,10 +13,10 @@ pub struct Pkg;
 /// Return a given package's atom.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Pkg pointer.
+/// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_atom(ptr: NonNull<pkg::Pkg>) -> *const atom::Atom {
-    let pkg = unsafe { ptr.as_ref() };
+pub unsafe extern "C" fn pkgcraft_pkg_atom(p: NonNull<pkg::Pkg>) -> *const atom::Atom {
+    let pkg = unsafe { p.as_ref() };
     pkg.atom()
 }
 
@@ -24,15 +24,15 @@ pub unsafe extern "C" fn pkgcraft_pkg_atom(ptr: NonNull<pkg::Pkg>) -> *const ato
 /// greater than the second package, respectively.
 ///
 /// # Safety
-/// The ptr arguments should be non-null Pkg pointers.
+/// The arguments must be non-null Pkg pointers.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
-    ptr1: NonNull<pkg::Pkg<'a>>,
-    ptr2: NonNull<pkg::Pkg<'a>>,
+    p1: NonNull<pkg::Pkg<'a>>,
+    p2: NonNull<pkg::Pkg<'a>>,
 ) -> c_int {
-    let (obj1, obj2) = unsafe { (ptr1.as_ref(), ptr2.as_ref()) };
+    let (pkg1, pkg2) = unsafe { (p1.as_ref(), p2.as_ref()) };
 
-    match obj1.cmp(obj2) {
+    match pkg1.cmp(pkg2) {
         Ordering::Less => -1,
         Ordering::Equal => 0,
         Ordering::Greater => 1,
@@ -42,20 +42,20 @@ pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
 /// Return the hash value for a given package.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Pkg pointer.
+/// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_hash(ptr: NonNull<pkg::Pkg>) -> u64 {
-    let pkg = unsafe { ptr.as_ref() };
+pub unsafe extern "C" fn pkgcraft_pkg_hash(p: NonNull<pkg::Pkg>) -> u64 {
+    let pkg = unsafe { p.as_ref() };
     hash(pkg)
 }
 
 /// Free an package.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Pkg pointer.
+/// The argument must be a non-null Pkg pointer or NULL.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_free(ptr: *mut pkg::Pkg) {
-    if !ptr.is_null() {
-        unsafe { drop(Box::from_raw(ptr)) };
+pub unsafe extern "C" fn pkgcraft_pkg_free(p: *mut pkg::Pkg) {
+    if !p.is_null() {
+        unsafe { drop(Box::from_raw(p)) };
     }
 }

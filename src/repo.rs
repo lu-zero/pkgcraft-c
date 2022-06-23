@@ -16,10 +16,10 @@ pub struct PkgIter;
 /// Return a given repo's id.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Repo pointer.
+/// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_id(ptr: NonNull<repo::Repo>) -> *mut c_char {
-    let repo = unsafe { ptr.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_id(p: NonNull<repo::Repo>) -> *mut c_char {
+    let repo = unsafe { p.as_ref() };
     CString::new(repo.id()).unwrap().into_raw()
 }
 
@@ -27,13 +27,13 @@ pub unsafe extern "C" fn pkgcraft_repo_id(ptr: NonNull<repo::Repo>) -> *mut c_ch
 /// than the second repo, respectively.
 ///
 /// # Safety
-/// The ptr arguments should be non-null Repo pointers.
+/// The arguments must be non-null Repo pointers.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_repo_cmp(
-    ptr1: NonNull<repo::Repo>,
-    ptr2: NonNull<repo::Repo>,
+    r1: NonNull<repo::Repo>,
+    r2: NonNull<repo::Repo>,
 ) -> c_int {
-    let (repo1, repo2) = unsafe { (ptr1.as_ref(), ptr2.as_ref()) };
+    let (repo1, repo2) = unsafe { (r1.as_ref(), r2.as_ref()) };
 
     match repo1.cmp(repo2) {
         Ordering::Less => -1,
@@ -45,22 +45,20 @@ pub unsafe extern "C" fn pkgcraft_repo_cmp(
 /// Return the hash value for a given repo.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Repo pointer.
+/// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_hash(ptr: NonNull<repo::Repo>) -> u64 {
-    let repo = unsafe { ptr.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_hash(r: NonNull<repo::Repo>) -> u64 {
+    let repo = unsafe { r.as_ref() };
     hash(repo)
 }
 
 /// Return a package iterator for a given repo.
 ///
 /// # Safety
-/// The ptr argument should be a non-null Repo pointer.
+/// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(
-    ptr: NonNull<repo::Repo>,
-) -> *mut repo::PkgIter<'a> {
-    let repo = unsafe { ptr.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(r: NonNull<repo::Repo>) -> *mut repo::PkgIter<'a> {
+    let repo = unsafe { r.as_ref() };
     Box::into_raw(Box::new(repo.iter()))
 }
 
@@ -69,10 +67,10 @@ pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(
 /// Returns NULL when the iterator is empty.
 ///
 /// # Safety
-/// The ptr argument should be a non-null PkgIter pointer.
+/// The argument must be a non-null PkgIter pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_iter_next(mut ptr: NonNull<repo::PkgIter>) -> *mut pkg::Pkg {
-    let iter = unsafe { ptr.as_mut() };
+pub unsafe extern "C" fn pkgcraft_repo_iter_next(mut i: NonNull<repo::PkgIter>) -> *mut pkg::Pkg {
+    let iter = unsafe { i.as_mut() };
     match iter.next() {
         None => ptr::null_mut(),
         Some(p) => Box::into_raw(Box::new(p)),
@@ -82,10 +80,10 @@ pub unsafe extern "C" fn pkgcraft_repo_iter_next(mut ptr: NonNull<repo::PkgIter>
 /// Free a repo iterator.
 ///
 /// # Safety
-/// The ptr argument should be a non-null PkgIter pointer received from pkgcraft_repo_iter().
+/// The argument must be a non-null PkgIter pointer or NULL.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_iter_free(ptr: *mut repo::PkgIter) {
-    if !ptr.is_null() {
-        unsafe { drop(Box::from_raw(ptr)) };
+pub unsafe extern "C" fn pkgcraft_repo_iter_free(i: *mut repo::PkgIter) {
+    if !i.is_null() {
+        unsafe { drop(Box::from_raw(i)) };
     }
 }

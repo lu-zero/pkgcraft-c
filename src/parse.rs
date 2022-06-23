@@ -11,7 +11,8 @@ use crate::macros::unwrap_or_return;
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The atom argument should be a UTF-8 string while eapi can be a string or may be
+/// NULL to use the default EAPI.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_parse_atom(
     atom: NonNull<c_char>,
@@ -29,12 +30,12 @@ pub unsafe extern "C" fn pkgcraft_parse_atom(
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The argument should point to a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_parse_category(cstr: *const c_char) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
-    unwrap_or_return!(atom::parse::category(s), ptr::null_mut());
-    cstr
+pub unsafe extern "C" fn pkgcraft_parse_category(s: *const c_char) -> *const c_char {
+    let val = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
+    unwrap_or_return!(atom::parse::category(val), ptr::null_mut());
+    s
 }
 
 /// Parse an atom package string.
@@ -42,12 +43,12 @@ pub unsafe extern "C" fn pkgcraft_parse_category(cstr: *const c_char) -> *const 
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The argument should point to a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_parse_package(cstr: *const c_char) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
-    unwrap_or_return!(atom::parse::package(s), ptr::null_mut());
-    cstr
+pub unsafe extern "C" fn pkgcraft_parse_package(s: *const c_char) -> *const c_char {
+    let val = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
+    unwrap_or_return!(atom::parse::package(val), ptr::null_mut());
+    s
 }
 
 /// Parse an atom version string.
@@ -55,12 +56,12 @@ pub unsafe extern "C" fn pkgcraft_parse_package(cstr: *const c_char) -> *const c
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The argument should point to a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_parse_version(cstr: *const c_char) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
-    unwrap_or_return!(atom::Version::valid(s), ptr::null_mut());
-    cstr
+pub unsafe extern "C" fn pkgcraft_parse_version(s: *const c_char) -> *const c_char {
+    let val = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
+    unwrap_or_return!(atom::Version::valid(val), ptr::null_mut());
+    s
 }
 
 /// Parse an atom repo string.
@@ -68,12 +69,12 @@ pub unsafe extern "C" fn pkgcraft_parse_version(cstr: *const c_char) -> *const c
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The argument should point to a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_parse_repo(cstr: *const c_char) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
-    unwrap_or_return!(atom::parse::repo(s), ptr::null_mut());
-    cstr
+pub unsafe extern "C" fn pkgcraft_parse_repo(s: *const c_char) -> *const c_char {
+    let val = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
+    unwrap_or_return!(atom::parse::repo(val), ptr::null_mut());
+    s
 }
 
 /// Parse an atom cpv string.
@@ -81,10 +82,10 @@ pub unsafe extern "C" fn pkgcraft_parse_repo(cstr: *const c_char) -> *const c_ch
 /// Returns NULL on error.
 ///
 /// # Safety
-/// The argument should point to a valid UTF-8 string.
+/// The argument should point to a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_parse_cpv(cstr: *const c_char) -> *const c_char {
-    let s = unsafe { unwrap_or_return!(CStr::from_ptr(cstr).to_str(), ptr::null_mut()) };
-    unwrap_or_return!(atom::Atom::valid_cpv(s), ptr::null_mut());
-    cstr
+pub unsafe extern "C" fn pkgcraft_parse_cpv(s: *const c_char) -> *const c_char {
+    let val = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
+    unwrap_or_return!(atom::Atom::valid_cpv(val), ptr::null_mut());
+    s
 }
