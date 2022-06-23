@@ -18,9 +18,19 @@ pub struct PkgIter;
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_id(p: NonNull<repo::Repo>) -> *mut c_char {
-    let repo = unsafe { p.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_id(r: NonNull<repo::Repo>) -> *mut c_char {
+    let repo = unsafe { r.as_ref() };
     CString::new(repo.id()).unwrap().into_raw()
+}
+
+/// Return a given repo's length.
+///
+/// # Safety
+/// The argument must be a non-null Repo pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_len(r: NonNull<repo::Repo>) -> usize {
+    let repo = unsafe { r.as_ref() };
+    repo.len()
 }
 
 /// Compare two repos returning -1, 0, or 1 if the first repo is less than, equal to, or greater
