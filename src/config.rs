@@ -68,10 +68,10 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
     let mut ptrs: Vec<_> = repos
         .iter()
         .copied()
-        .map(|(id, r)| {
+        .map(|(id, repo)| {
             let r = RepoConfig {
                 id: CString::new(id).unwrap().into_raw(),
-                repo: r,
+                repo,
             };
             Box::into_raw(Box::new(r))
         })
