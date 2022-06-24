@@ -62,6 +62,17 @@ pub unsafe extern "C" fn pkgcraft_repo_hash(r: NonNull<repo::Repo>) -> u64 {
     hash(repo)
 }
 
+/// Free a repo.
+///
+/// # Safety
+/// The argument must be a Repo pointer or NULL.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_free(r: *mut repo::Repo) {
+    if !r.is_null() {
+        unsafe { drop(Box::from_raw(r)) };
+    }
+}
+
 /// Return a package iterator for a given repo.
 ///
 /// # Safety

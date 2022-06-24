@@ -40,7 +40,7 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
     id: *const c_char,
     priority: c_int,
     path: NonNull<c_char>,
-) -> *const repo::Repo {
+) -> *mut repo::Repo {
     let path =
         unsafe { unwrap_or_return!(CStr::from_ptr(path.as_ref()).to_str(), ptr::null_mut()) };
     let id = match id.is_null() {
