@@ -1,9 +1,13 @@
 use std::cmp::Ordering;
 use std::os::raw::c_int;
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 use pkgcraft::pkg::Package;
-use pkgcraft::{atom, pkg, utils::hash};
+use pkgcraft::{atom, pkg, utils::hash, Error};
+
+use crate::macros::unwrap_or_return;
+
+pub mod ebuild;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
@@ -37,6 +41,21 @@ pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
         Ordering::Equal => 0,
         Ordering::Greater => 1,
     }
+}
+
+/// Convert a Pkg into an EbuildPkg.
+///
+/// Returns NULL on error.
+///
+/// # Safety
+/// The argument must be a non-null Pkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: NonNull<pkg::Pkg>) -> *const ebuild::EbuildPkg {
+    let pkg = unsafe { p.as_ref() };
+    let result = pkg
+        .as_ebuild()
+        .ok_or_else(|| Error::InvalidValue("invalid pkg format".to_string()));
+    unwrap_or_return!(result, ptr::null())
 }
 
 /// Return the hash value for a given package.

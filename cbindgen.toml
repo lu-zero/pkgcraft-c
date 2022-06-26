@@ -3,6 +3,10 @@ include_guard = "PKGCRAFT_H"
 include_version = true
 language = "C"
 cpp_compat = true
+includes = ["pkgcraft_manual.h"]
+
+[fn]
+sort_by = "Name"
 
 [parse]
 parse_deps = true

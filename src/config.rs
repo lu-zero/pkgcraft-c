@@ -6,6 +6,7 @@ use std::ptr::{self, NonNull};
 use pkgcraft::{config, repo};
 
 use crate::macros::unwrap_or_return;
+use crate::repo::RepoFormat;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
@@ -16,6 +17,7 @@ pub struct Config;
 #[repr(C)]
 pub struct RepoConfig {
     id: *mut c_char,
+    format: RepoFormat,
     repo: *const repo::Repo,
 }
 
@@ -40,7 +42,7 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
     id: *const c_char,
     priority: c_int,
     path: NonNull<c_char>,
-) -> *mut repo::Repo {
+) -> *mut RepoConfig {
     let path =
         unsafe { unwrap_or_return!(CStr::from_ptr(path.as_ref()).to_str(), ptr::null_mut()) };
     let id = match id.is_null() {
@@ -49,7 +51,12 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
     };
     let config = unsafe { config.as_mut() };
     let repo = unwrap_or_return!(config.add_repo(id, priority, path), ptr::null_mut());
-    Box::into_raw(Box::new(repo))
+    let repo_conf = RepoConfig {
+        id: CString::new(id).unwrap().into_raw(),
+        format: (&repo).into(),
+        repo: Box::into_raw(Box::new(repo)),
+    };
+    Box::into_raw(Box::new(repo_conf))
 }
 
 /// Return the repos for a config.
@@ -69,17 +76,32 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
         .iter()
         .copied()
         .map(|(id, repo)| {
-            let r = RepoConfig {
+            let repo_conf = RepoConfig {
                 id: CString::new(id).unwrap().into_raw(),
+                format: repo.into(),
                 repo,
             };
-            Box::into_raw(Box::new(r))
+            Box::into_raw(Box::new(repo_conf))
         })
         .collect();
     ptrs.shrink_to_fit();
     let p = ptrs.as_mut_ptr();
     mem::forget(ptrs);
     p
+}
+
+/// Free a repo config.
+///
+/// # Safety
+/// The argument must be a RepoConfig pointer or NULL.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_config_free(r: *mut RepoConfig) {
+    if !r.is_null() {
+        unsafe {
+            let repo_conf = Box::from_raw(r);
+            drop(CString::from_raw(repo_conf.id));
+        }
+    }
 }
 
 /// Free an array of configured repos.
@@ -92,8 +114,7 @@ pub unsafe extern "C" fn pkgcraft_repos_free(repos: *mut *mut RepoConfig, len: u
     if !repos.is_null() {
         unsafe {
             for r in Vec::from_raw_parts(repos, len, len).into_iter() {
-                let repo = Box::from_raw(r);
-                drop(CString::from_raw(repo.id));
+                pkgcraft_repo_config_free(r);
             }
         }
     }

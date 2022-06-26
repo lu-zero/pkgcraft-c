@@ -2,9 +2,14 @@ use std::cmp::Ordering;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 use std::ptr::{self, NonNull};
+use std::sync::Arc;
 
 use pkgcraft::repo::Repository;
-use pkgcraft::{pkg, repo, utils::hash};
+use pkgcraft::{pkg, repo, utils::hash, Error};
+
+use crate::macros::unwrap_or_return;
+
+pub mod ebuild;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
@@ -12,6 +17,23 @@ use pkgcraft::{pkg, repo, utils::hash};
 pub struct Repo;
 /// Opaque wrapper for PkgIter objects.
 pub struct PkgIter;
+
+#[repr(C)]
+pub enum RepoFormat {
+    Ebuild,
+    Fake,
+    Empty,
+}
+
+impl From<&repo::Repo> for RepoFormat {
+    fn from(repo: &repo::Repo) -> Self {
+        match repo {
+            repo::Repo::Ebuild(_) => Self::Ebuild,
+            repo::Repo::Fake(_) => Self::Fake,
+            repo::Repo::Config(_) => Self::Empty,
+        }
+    }
+}
 
 /// Return a given repo's id.
 ///
@@ -50,6 +72,24 @@ pub unsafe extern "C" fn pkgcraft_repo_cmp(
         Ordering::Equal => 0,
         Ordering::Greater => 1,
     }
+}
+
+/// Convert a Repo into an EbuildRepo.
+///
+/// Returns NULL on error.
+///
+/// # Safety
+/// The argument must be a non-null Repo pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_as_ebuild(
+    r: NonNull<repo::Repo>,
+) -> *const ebuild::EbuildRepo {
+    let repo = unsafe { r.as_ref() };
+    let result = repo
+        .as_ebuild()
+        .ok_or_else(|| Error::InvalidValue("invalid repo format".to_string()));
+    let repo = unwrap_or_return!(result, ptr::null());
+    Arc::as_ptr(repo)
 }
 
 /// Return the hash value for a given repo.
