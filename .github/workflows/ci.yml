@@ -126,7 +126,7 @@ jobs:
       run: cargo update
 
     - name: Run rustfmt
-      run: cargo fmt --all -- --check -p ${{ github.event.repository.name }}
+      run: cargo fmt --check -p ${{ github.event.repository.name }}
 
     - name: Run clippy
       uses: actions-rs/clippy-check@v1
