@@ -70,7 +70,8 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 ) -> *mut *mut RepoConfig {
     // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
     let config = null_ptr_check!(config.as_ref());
-    let mut ptrs: Vec<_> = config.repos
+    let mut ptrs: Vec<_> = config
+        .repos
         .into_iter()
         .map(|(id, repo)| {
             let repo_conf = RepoConfig {
