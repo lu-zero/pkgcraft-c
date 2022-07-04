@@ -70,11 +70,8 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 ) -> *mut *mut RepoConfig {
     // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
     let config = null_ptr_check!(config.as_ref());
-    let repos: Vec<_> = config.repos.iter().collect();
-    unsafe { *len = repos.len() };
-    let mut ptrs: Vec<_> = repos
-        .iter()
-        .copied()
+    let mut ptrs: Vec<_> = config.repos
+        .into_iter()
         .map(|(id, repo)| {
             let repo_conf = RepoConfig {
                 id: CString::new(id).unwrap().into_raw(),
@@ -85,6 +82,7 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
         })
         .collect();
     ptrs.shrink_to_fit();
+    unsafe { *len = ptrs.len() };
     let p = ptrs.as_mut_ptr();
     mem::forget(ptrs);
     p
