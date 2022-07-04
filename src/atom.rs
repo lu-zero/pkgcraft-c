@@ -1,12 +1,11 @@
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
-use std::mem;
 use std::os::raw::{c_char, c_int};
-use std::ptr::{self, NonNull};
+use std::{mem, ptr};
 
 use pkgcraft::{atom, eapi, utils::hash};
 
-use crate::macros::unwrap_or_return;
+use crate::macros::*;
 
 pub mod version;
 
@@ -26,11 +25,11 @@ pub type Blocker = atom::Blocker;
 /// NULL to use the default EAPI.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom(
-    atom: NonNull<c_char>,
+    atom: *const c_char,
     eapi: *const c_char,
 ) -> *mut atom::Atom {
-    let atom =
-        unsafe { unwrap_or_return!(CStr::from_ptr(atom.as_ref()).to_str(), ptr::null_mut()) };
+    let atom = null_ptr_check!(atom.as_ref());
+    let atom = unsafe { unwrap_or_return!(CStr::from_ptr(atom).to_str(), ptr::null_mut()) };
     let eapi = unwrap_or_return!(eapi::IntoEapi::into_eapi(eapi), ptr::null_mut());
     let atom = unwrap_or_return!(atom::Atom::new(atom, eapi), ptr::null_mut());
     Box::into_raw(Box::new(atom))
@@ -43,8 +42,9 @@ pub unsafe extern "C" fn pkgcraft_atom(
 /// # Safety
 /// The argument should be a UTF-8 string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_cpv(s: NonNull<c_char>) -> *mut atom::Atom {
-    let atom = unsafe { unwrap_or_return!(CStr::from_ptr(s.as_ref()).to_str(), ptr::null_mut()) };
+pub unsafe extern "C" fn pkgcraft_cpv(s: *const c_char) -> *mut atom::Atom {
+    let s = null_ptr_check!(s.as_ref());
+    let atom = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
     let atom = unwrap_or_return!(atom::cpv(atom), ptr::null_mut());
     Box::into_raw(Box::new(atom))
 }
@@ -55,11 +55,9 @@ pub unsafe extern "C" fn pkgcraft_cpv(s: NonNull<c_char>) -> *mut atom::Atom {
 /// # Safety
 /// The arguments must be non-null Atom pointers.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_cmp(
-    a1: NonNull<atom::Atom>,
-    a2: NonNull<atom::Atom>,
-) -> c_int {
-    let (a1, a2) = unsafe { (a1.as_ref(), a2.as_ref()) };
+pub unsafe extern "C" fn pkgcraft_atom_cmp(a1: *mut atom::Atom, a2: *mut atom::Atom) -> c_int {
+    let a1 = null_ptr_check!(a1.as_ref());
+    let a2 = null_ptr_check!(a2.as_ref());
 
     match a1.cmp(a2) {
         Ordering::Less => -1,
@@ -73,8 +71,8 @@ pub unsafe extern "C" fn pkgcraft_atom_cmp(
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_category(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     CString::new(atom.category()).unwrap().into_raw()
 }
 
@@ -83,8 +81,8 @@ pub unsafe extern "C" fn pkgcraft_atom_category(atom: NonNull<atom::Atom>) -> *m
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_package(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     CString::new(atom.package()).unwrap().into_raw()
 }
 
@@ -93,8 +91,8 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: NonNull<atom::Atom>) -> *mu
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> atom::Blocker {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: *mut atom::Atom) -> atom::Blocker {
+    let atom = null_ptr_check!(atom.as_ref());
     atom.blocker()
 }
 
@@ -106,8 +104,8 @@ pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: NonNull<atom::Atom>) -> ato
 /// The argument must be a non-null Atom pointer. Also, note that the returned pointer
 /// is borrowed from its related Atom object and should never be freed manually.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *const atom::Version {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_version(atom: *mut atom::Atom) -> *const atom::Version {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.version() {
         None => ptr::null_mut(),
         Some(v) => v,
@@ -121,8 +119,8 @@ pub unsafe extern "C" fn pkgcraft_atom_version(atom: NonNull<atom::Atom>) -> *co
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_revision(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_revision(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.revision() {
         None => ptr::null_mut(),
         Some(r) => CString::new(r.as_str()).unwrap().into_raw(),
@@ -136,8 +134,8 @@ pub unsafe extern "C" fn pkgcraft_atom_revision(atom: NonNull<atom::Atom>) -> *m
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_slot(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.slot() {
         None => ptr::null_mut(),
         Some(s) => CString::new(s).unwrap().into_raw(),
@@ -151,8 +149,8 @@ pub unsafe extern "C" fn pkgcraft_atom_slot(atom: NonNull<atom::Atom>) -> *mut c
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.subslot() {
         None => ptr::null_mut(),
         Some(s) => CString::new(s).unwrap().into_raw(),
@@ -167,8 +165,8 @@ pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: NonNull<atom::Atom>) -> *mu
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.slot_op() {
         None => ptr::null_mut(),
         Some(s) => CString::new(s).unwrap().into_raw(),
@@ -184,11 +182,11 @@ pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: NonNull<atom::Atom>) -> *mu
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_atom_use_deps(
-    atom: NonNull<atom::Atom>,
+    atom: *mut atom::Atom,
     len: *mut usize,
 ) -> *mut *mut c_char {
     // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
-    let atom = unsafe { atom.as_ref() };
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.use_deps() {
         None => ptr::null_mut(),
         Some(use_deps) => {
@@ -212,8 +210,8 @@ pub unsafe extern "C" fn pkgcraft_atom_use_deps(
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_repo(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     match atom.repo() {
         None => ptr::null_mut(),
         Some(s) => CString::new(s).unwrap().into_raw(),
@@ -225,8 +223,8 @@ pub unsafe extern "C" fn pkgcraft_atom_repo(atom: NonNull<atom::Atom>) -> *mut c
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_key(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     CString::new(atom.key()).unwrap().into_raw()
 }
 
@@ -235,8 +233,8 @@ pub unsafe extern "C" fn pkgcraft_atom_key(atom: NonNull<atom::Atom>) -> *mut c_
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     CString::new(atom.cpv()).unwrap().into_raw()
 }
 
@@ -245,8 +243,8 @@ pub unsafe extern "C" fn pkgcraft_atom_cpv(atom: NonNull<atom::Atom>) -> *mut c_
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_str(atom: NonNull<atom::Atom>) -> *mut c_char {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_str(atom: *mut atom::Atom) -> *mut c_char {
+    let atom = null_ptr_check!(atom.as_ref());
     CString::new(format!("{atom}")).unwrap().into_raw()
 }
 
@@ -266,7 +264,7 @@ pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut atom::Atom) {
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_hash(atom: NonNull<atom::Atom>) -> u64 {
-    let atom = unsafe { atom.as_ref() };
+pub unsafe extern "C" fn pkgcraft_atom_hash(atom: *mut atom::Atom) -> u64 {
+    let atom = null_ptr_check!(atom.as_ref());
     hash(atom)
 }

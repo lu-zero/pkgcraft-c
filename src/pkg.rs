@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
 use std::os::raw::c_int;
-use std::ptr::{self, NonNull};
+use std::ptr;
 
 use pkgcraft::pkg::Package;
 use pkgcraft::{atom, pkg, utils::hash, Error};
 
-use crate::macros::unwrap_or_return;
+use crate::macros::*;
 
 pub mod ebuild;
 
@@ -19,8 +19,8 @@ pub struct Pkg;
 /// # Safety
 /// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_atom(p: NonNull<pkg::Pkg>) -> *const atom::Atom {
-    let pkg = unsafe { p.as_ref() };
+pub unsafe extern "C" fn pkgcraft_pkg_atom(p: *mut pkg::Pkg) -> *const atom::Atom {
+    let pkg = null_ptr_check!(p.as_ref());
     pkg.atom()
 }
 
@@ -31,10 +31,11 @@ pub unsafe extern "C" fn pkgcraft_pkg_atom(p: NonNull<pkg::Pkg>) -> *const atom:
 /// The arguments must be non-null Pkg pointers.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
-    p1: NonNull<pkg::Pkg<'a>>,
-    p2: NonNull<pkg::Pkg<'a>>,
+    p1: *mut pkg::Pkg<'a>,
+    p2: *mut pkg::Pkg<'a>,
 ) -> c_int {
-    let (pkg1, pkg2) = unsafe { (p1.as_ref(), p2.as_ref()) };
+    let pkg1 = null_ptr_check!(p1.as_ref());
+    let pkg2 = null_ptr_check!(p2.as_ref());
 
     match pkg1.cmp(pkg2) {
         Ordering::Less => -1,
@@ -50,8 +51,8 @@ pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
 /// # Safety
 /// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: NonNull<pkg::Pkg>) -> *const ebuild::EbuildPkg {
-    let pkg = unsafe { p.as_ref() };
+pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: *mut pkg::Pkg) -> *const ebuild::EbuildPkg {
+    let pkg = null_ptr_check!(p.as_ref());
     let result = pkg
         .as_ebuild()
         .ok_or_else(|| Error::InvalidValue("invalid pkg format".to_string()));
@@ -63,8 +64,8 @@ pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: NonNull<pkg::Pkg>) -> *const 
 /// # Safety
 /// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_hash(p: NonNull<pkg::Pkg>) -> u64 {
-    let pkg = unsafe { p.as_ref() };
+pub unsafe extern "C" fn pkgcraft_pkg_hash(p: *mut pkg::Pkg) -> u64 {
+    let pkg = null_ptr_check!(p.as_ref());
     hash(pkg)
 }
 

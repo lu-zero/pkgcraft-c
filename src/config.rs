@@ -1,11 +1,11 @@
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::os::raw::{c_char, c_int};
-use std::ptr::{self, NonNull};
+use std::ptr;
 
 use pkgcraft::{config, repo};
 
-use crate::macros::unwrap_or_return;
+use crate::macros::*;
 use crate::repo::RepoFormat;
 
 // explicitly force symbols to be exported
@@ -38,18 +38,18 @@ pub extern "C" fn pkgcraft_config() -> *mut config::Config {
 /// The path argument should be a valid path on the system.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_config_add_repo(
-    mut config: NonNull<config::Config>,
+    config: *mut config::Config,
     id: *const c_char,
     priority: c_int,
-    path: NonNull<c_char>,
+    path: *const c_char,
 ) -> *mut RepoConfig {
-    let path =
-        unsafe { unwrap_or_return!(CStr::from_ptr(path.as_ref()).to_str(), ptr::null_mut()) };
+    let path = null_ptr_check!(path.as_ref());
+    let path = unsafe { unwrap_or_return!(CStr::from_ptr(path).to_str(), ptr::null_mut()) };
     let id = match id.is_null() {
         true => path,
         false => unsafe { unwrap_or_return!(CStr::from_ptr(id).to_str(), ptr::null_mut()) },
     };
-    let config = unsafe { config.as_mut() };
+    let config = null_ptr_check!(config.as_mut());
     let repo = unwrap_or_return!(config.add_repo(id, priority, path), ptr::null_mut());
     let repo_conf = RepoConfig {
         id: CString::new(id).unwrap().into_raw(),
@@ -65,11 +65,11 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
 /// The config argument must be a non-null Config pointer.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_config_repos(
-    config: NonNull<config::Config>,
+    config: *mut config::Config,
     len: *mut usize,
 ) -> *mut *mut RepoConfig {
     // TODO: switch from usize to std::os::raw::c_size_t when it's stable.
-    let config = unsafe { config.as_ref() };
+    let config = null_ptr_check!(config.as_ref());
     let repos: Vec<_> = config.repos.iter().collect();
     unsafe { *len = repos.len() };
     let mut ptrs: Vec<_> = repos

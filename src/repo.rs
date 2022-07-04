@@ -1,13 +1,13 @@
 use std::cmp::Ordering;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
-use std::ptr::{self, NonNull};
+use std::ptr;
 use std::sync::Arc;
 
 use pkgcraft::repo::Repository;
 use pkgcraft::{pkg, repo, utils::hash, Error};
 
-use crate::macros::unwrap_or_return;
+use crate::macros::*;
 
 pub mod ebuild;
 
@@ -40,8 +40,8 @@ impl From<&repo::Repo> for RepoFormat {
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_id(r: NonNull<repo::Repo>) -> *mut c_char {
-    let repo = unsafe { r.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_id(r: *mut repo::Repo) -> *mut c_char {
+    let repo = null_ptr_check!(r.as_ref());
     CString::new(repo.id()).unwrap().into_raw()
 }
 
@@ -50,8 +50,8 @@ pub unsafe extern "C" fn pkgcraft_repo_id(r: NonNull<repo::Repo>) -> *mut c_char
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_len(r: NonNull<repo::Repo>) -> usize {
-    let repo = unsafe { r.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_len(r: *mut repo::Repo) -> usize {
+    let repo = null_ptr_check!(r.as_ref());
     repo.len()
 }
 
@@ -61,11 +61,9 @@ pub unsafe extern "C" fn pkgcraft_repo_len(r: NonNull<repo::Repo>) -> usize {
 /// # Safety
 /// The arguments must be non-null Repo pointers.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_cmp(
-    r1: NonNull<repo::Repo>,
-    r2: NonNull<repo::Repo>,
-) -> c_int {
-    let (repo1, repo2) = unsafe { (r1.as_ref(), r2.as_ref()) };
+pub unsafe extern "C" fn pkgcraft_repo_cmp(r1: *mut repo::Repo, r2: *mut repo::Repo) -> c_int {
+    let repo1 = null_ptr_check!(r1.as_ref());
+    let repo2 = null_ptr_check!(r2.as_ref());
 
     match repo1.cmp(repo2) {
         Ordering::Less => -1,
@@ -81,10 +79,8 @@ pub unsafe extern "C" fn pkgcraft_repo_cmp(
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_as_ebuild(
-    r: NonNull<repo::Repo>,
-) -> *const ebuild::EbuildRepo {
-    let repo = unsafe { r.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_as_ebuild(r: *mut repo::Repo) -> *const ebuild::EbuildRepo {
+    let repo = null_ptr_check!(r.as_ref());
     let result = repo
         .as_ebuild()
         .ok_or_else(|| Error::InvalidValue("invalid repo format".to_string()));
@@ -97,8 +93,8 @@ pub unsafe extern "C" fn pkgcraft_repo_as_ebuild(
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_hash(r: NonNull<repo::Repo>) -> u64 {
-    let repo = unsafe { r.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_hash(r: *mut repo::Repo) -> u64 {
+    let repo = null_ptr_check!(r.as_ref());
     hash(repo)
 }
 
@@ -118,8 +114,8 @@ pub unsafe extern "C" fn pkgcraft_repo_free(r: *mut repo::Repo) {
 /// # Safety
 /// The argument must be a non-null Repo pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(r: NonNull<repo::Repo>) -> *mut repo::PkgIter<'a> {
-    let repo = unsafe { r.as_ref() };
+pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(r: *mut repo::Repo) -> *mut repo::PkgIter<'a> {
+    let repo = null_ptr_check!(r.as_ref());
     Box::into_raw(Box::new(repo.iter()))
 }
 
@@ -130,8 +126,8 @@ pub unsafe extern "C" fn pkgcraft_repo_iter<'a>(r: NonNull<repo::Repo>) -> *mut 
 /// # Safety
 /// The argument must be a non-null PkgIter pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_repo_iter_next(mut i: NonNull<repo::PkgIter>) -> *mut pkg::Pkg {
-    let iter = unsafe { i.as_mut() };
+pub unsafe extern "C" fn pkgcraft_repo_iter_next(i: *mut repo::PkgIter) -> *mut pkg::Pkg {
+    let iter = null_ptr_check!(i.as_mut());
     match iter.next() {
         None => ptr::null_mut(),
         Some(p) => Box::into_raw(Box::new(p)),

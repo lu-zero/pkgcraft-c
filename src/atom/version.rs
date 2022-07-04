@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use std::ptr::{self, NonNull};
+use std::ptr;
 
 use pkgcraft::{atom, utils::hash};
 
-use crate::macros::unwrap_or_return;
+use crate::macros::*;
 
 // explicitly force symbols to be exported
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
@@ -45,10 +45,11 @@ pub unsafe extern "C" fn pkgcraft_version_with_op(version: *const c_char) -> *mu
 /// The version arguments should be non-null Version pointers received from pkgcraft_version().
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_version_cmp(
-    v1: NonNull<atom::Version>,
-    v2: NonNull<atom::Version>,
+    v1: *mut atom::Version,
+    v2: *mut atom::Version,
 ) -> c_int {
-    let (v1, v2) = unsafe { (v1.as_ref(), v2.as_ref()) };
+    let v1 = null_ptr_check!(v1.as_ref());
+    let v2 = null_ptr_check!(v2.as_ref());
 
     match v1.cmp(v2) {
         Ordering::Less => -1,
@@ -62,8 +63,8 @@ pub unsafe extern "C" fn pkgcraft_version_cmp(
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_revision(version: NonNull<atom::Version>) -> *mut c_char {
-    let version = unsafe { version.as_ref() };
+pub unsafe extern "C" fn pkgcraft_version_revision(version: *mut atom::Version) -> *mut c_char {
+    let version = null_ptr_check!(version.as_ref());
     let s = version.revision().as_str();
     CString::new(s).unwrap().into_raw()
 }
@@ -73,8 +74,8 @@ pub unsafe extern "C" fn pkgcraft_version_revision(version: NonNull<atom::Versio
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_str(version: NonNull<atom::Version>) -> *mut c_char {
-    let version = unsafe { version.as_ref() };
+pub unsafe extern "C" fn pkgcraft_version_str(version: *mut atom::Version) -> *mut c_char {
+    let version = null_ptr_check!(version.as_ref());
     CString::new(version.as_str()).unwrap().into_raw()
 }
 
@@ -94,7 +95,7 @@ pub unsafe extern "C" fn pkgcraft_version_free(version: *mut atom::Version) {
 /// # Safety
 /// The version argument should be a non-null Version pointer received from pkgcraft_version().
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_version_hash(version: NonNull<atom::Version>) -> u64 {
-    let version = unsafe { version.as_ref() };
+pub unsafe extern "C" fn pkgcraft_version_hash(version: *mut atom::Version) -> u64 {
+    let version = null_ptr_check!(version.as_ref());
     hash(version)
 }
