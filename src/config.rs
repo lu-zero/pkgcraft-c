@@ -30,14 +30,14 @@ pub extern "C" fn pkgcraft_config() -> *mut config::Config {
     Box::into_raw(Box::new(config))
 }
 
-/// Add an external repo to a config.
+/// Add local repo from filesystem path.
 ///
 /// Returns NULL on error.
 ///
 /// # Safety
 /// The path argument should be a valid path on the system.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_config_add_repo(
+pub unsafe extern "C" fn pkgcraft_config_add_repo_path(
     config: *mut config::Config,
     id: *const c_char,
     priority: c_int,
@@ -50,7 +50,7 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo(
         false => unsafe { unwrap_or_return!(CStr::from_ptr(id).to_str(), ptr::null_mut()) },
     };
     let config = null_ptr_check!(config.as_mut());
-    let repo = unwrap_or_return!(config.add_repo(id, priority, path), ptr::null_mut());
+    let repo = unwrap_or_return!(config.add_repo_path(id, priority, path), ptr::null_mut());
     let repo_conf = RepoConfig {
         id: CString::new(id).unwrap().into_raw(),
         format: (&repo).into(),
