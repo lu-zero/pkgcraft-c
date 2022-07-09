@@ -5,7 +5,7 @@ pub use pkgcraft::pkg::ebuild::Pkg as EbuildPkg;
 
 use crate::macros::*;
 
-/// Return a given ebuild's DESCRIPTION.
+/// Return a package's description.
 ///
 /// # Safety
 /// The argument must be a non-null EbuildPkg pointer.
@@ -15,7 +15,7 @@ pub unsafe extern "C" fn pkgcraft_ebuild_pkg_description(p: *mut EbuildPkg) -> *
     CString::new(pkg.description()).unwrap().into_raw()
 }
 
-/// Return a given ebuild's slot.
+/// Return a package's slot.
 ///
 /// # Safety
 /// The argument must be a non-null EbuildPkg pointer.
