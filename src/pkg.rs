@@ -3,7 +3,7 @@ use std::os::raw::c_int;
 use std::ptr;
 
 use pkgcraft::pkg::Package;
-use pkgcraft::{atom, pkg, utils::hash, Error};
+use pkgcraft::{atom, pkg, repo, utils::hash, Error};
 
 use crate::macros::*;
 
@@ -22,6 +22,16 @@ pub struct Pkg;
 pub unsafe extern "C" fn pkgcraft_pkg_atom(p: *mut pkg::Pkg) -> *const atom::Atom {
     let pkg = null_ptr_check!(p.as_ref());
     pkg.atom()
+}
+
+/// Return a given package's repo.
+///
+/// # Safety
+/// The argument must be a non-null Pkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_pkg_repo(p: *mut pkg::Pkg) -> *const repo::Repo {
+    let pkg = null_ptr_check!(p.as_ref());
+    pkg.repo()
 }
 
 /// Compare two packages returning -1, 0, or 1 if the first package is less than, equal to, or
@@ -53,9 +63,10 @@ pub unsafe extern "C" fn pkgcraft_pkg_cmp<'a>(
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: *mut pkg::Pkg) -> *const ebuild::EbuildPkg {
     let pkg = null_ptr_check!(p.as_ref());
-    let result = pkg
-        .as_ebuild()
-        .ok_or_else(|| Error::InvalidValue("invalid pkg format".to_string()));
+    let result = match pkg.as_ebuild() {
+        Some((pkg, _repo)) => Ok(pkg),
+        None => Err(Error::InvalidValue("invalid pkg format".to_string())),
+    };
     unwrap_or_return!(result, ptr::null())
 }
 
