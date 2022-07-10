@@ -56,10 +56,16 @@ jobs:
     - name: Update deps
       run: cargo update -p ${{ github.event.repository.name }}
 
-    - name: Install cargo-c
+    - name: Install cargo-c via binary package on Linux
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      run: curl -L https://github.com/lu-zero/cargo-c/releases/latest/download/cargo-c-linux.tar.gz | tar xvzf - -C ~/.cargo/bin
+
+    - name: Install cargo-c via binary package on MacOS
+      if: ${{ matrix.os == 'macos-latest' }}
       run: |
-        # ignore return value since `cargo install` errors out when already installed
-        cargo install cargo-c || true
+        curl -L https://github.com/lu-zero/cargo-c/releases/latest/download/cargo-c-macos.zip > cargo-c.zip
+        unzip cargo-c.zip -d ~/.cargo/bin
+        rm cargo-c.zip
 
     - name: Build C library
       run: |
