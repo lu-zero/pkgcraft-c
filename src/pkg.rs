@@ -45,6 +45,16 @@ pub unsafe extern "C" fn pkgcraft_pkg_eapi(p: *mut pkg::Pkg) -> *mut c_char {
     CString::new(pkg.eapi().as_str()).unwrap().into_raw()
 }
 
+/// Return a given package's version.
+///
+/// # Safety
+/// The argument must be a non-null Pkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_pkg_version(p: *mut pkg::Pkg) -> *const atom::Version {
+    let pkg = null_ptr_check!(p.as_ref());
+    pkg.version()
+}
+
 /// Compare two packages returning -1, 0, or 1 if the first package is less than, equal to, or
 /// greater than the second package, respectively.
 ///
