@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
-use std::os::raw::c_int;
+use std::ffi::CString;
+use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 use pkgcraft::pkg::Package;
@@ -32,6 +33,16 @@ pub unsafe extern "C" fn pkgcraft_pkg_atom(p: *mut pkg::Pkg) -> *const atom::Ato
 pub unsafe extern "C" fn pkgcraft_pkg_repo(p: *mut pkg::Pkg) -> *const repo::Repo {
     let pkg = null_ptr_check!(p.as_ref());
     pkg.repo()
+}
+
+/// Return a given package's EAPI.
+///
+/// # Safety
+/// The argument must be a non-null Pkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_pkg_eapi(p: *mut pkg::Pkg) -> *mut c_char {
+    let pkg = null_ptr_check!(p.as_ref());
+    CString::new(pkg.eapi().as_str()).unwrap().into_raw()
 }
 
 /// Compare two packages returning -1, 0, or 1 if the first package is less than, equal to, or
