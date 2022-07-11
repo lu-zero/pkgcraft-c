@@ -50,11 +50,8 @@ jobs:
           ~/.cargo/registry/cache
           ~/.cargo/git/db
           target
-        key: v3-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-${{ hashFiles('pkgcraft-c/Cargo.lock') }}
-        restore-keys: v3-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-
-
-    - name: Update deps
-      run: cargo update -p ${{ github.event.repository.name }}
+        key: v1-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-${{ hashFiles('pkgcraft-c/Cargo.lock') }}
+        restore-keys: v1-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-
 
     - name: Install cargo-c via binary package on Linux
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -125,11 +122,8 @@ jobs:
           ~/.cargo/registry/cache
           ~/.cargo/git/db
           target
-        key: v3-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-${{ hashFiles('pkgcraft-c/Cargo.lock') }}
-        restore-keys: v3-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-
-
-    - name: Update deps
-      run: cargo update -p ${{ github.event.repository.name }}
+        key: v1-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-${{ hashFiles('pkgcraft-c/Cargo.lock') }}
+        restore-keys: v1-${{ github.job }}-${{ runner.os }}-rust-${{ steps.rust.outputs.rustc_hash }}-cargo-
 
     - name: Run rustfmt
       run: cargo fmt --check -p ${{ github.event.repository.name }}
