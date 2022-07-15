@@ -3,7 +3,7 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::{mem, ptr};
 
-use pkgcraft::{atom, eapi, utils::hash};
+use pkgcraft::{atom, eapi, restrict, utils::hash};
 
 use crate::macros::*;
 
@@ -248,6 +248,26 @@ pub unsafe extern "C" fn pkgcraft_atom_str(atom: *mut atom::Atom) -> *mut c_char
     CString::new(format!("{atom}")).unwrap().into_raw()
 }
 
+/// Return the hash value for a given atom.
+///
+/// # Safety
+/// The argument must be a non-null Atom pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_hash(atom: *mut atom::Atom) -> u64 {
+    let atom = null_ptr_check!(atom.as_ref());
+    hash(atom)
+}
+
+/// Return the restriction for a given atom.
+///
+/// # Safety
+/// The argument must be a non-null Atom pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_atom_restrict(atom: *mut atom::Atom) -> *mut restrict::Restrict {
+    let atom = null_ptr_check!(atom.as_ref());
+    Box::into_raw(Box::new(atom.into()))
+}
+
 /// Free an atom.
 ///
 /// # Safety
@@ -257,14 +277,4 @@ pub unsafe extern "C" fn pkgcraft_atom_free(atom: *mut atom::Atom) {
     if !atom.is_null() {
         unsafe { drop(Box::from_raw(atom)) };
     }
-}
-
-/// Return the hash value for a given atom.
-///
-/// # Safety
-/// The argument must be a non-null Atom pointer.
-#[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_hash(atom: *mut atom::Atom) -> u64 {
-    let atom = null_ptr_check!(atom.as_ref());
-    hash(atom)
 }

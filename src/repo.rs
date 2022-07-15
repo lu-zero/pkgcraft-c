@@ -5,7 +5,7 @@ use std::ptr;
 use std::sync::Arc;
 
 use pkgcraft::repo::Repository;
-use pkgcraft::{pkg, repo, utils::hash, Error};
+use pkgcraft::{pkg, repo, restrict, utils::hash, Error};
 
 use crate::macros::*;
 
@@ -17,6 +17,8 @@ pub mod ebuild;
 pub struct Repo;
 /// Opaque wrapper for PkgIter objects.
 pub struct PkgIter;
+/// Opaque wrapper for RestrictPkgIter objects.
+pub struct RestrictPkgIter;
 
 #[repr(C)]
 pub enum RepoFormat {
@@ -140,6 +142,49 @@ pub unsafe extern "C" fn pkgcraft_repo_iter_next(i: *mut repo::PkgIter) -> *mut 
 /// The argument must be a non-null PkgIter pointer or NULL.
 #[no_mangle]
 pub unsafe extern "C" fn pkgcraft_repo_iter_free(i: *mut repo::PkgIter) {
+    if !i.is_null() {
+        unsafe { drop(Box::from_raw(i)) };
+    }
+}
+
+/// Return a restriction package iterator for a given repo.
+///
+/// # Safety
+/// The repo argument must be a non-null Repo pointer and the restrict argument must be a non-null
+/// Restrict pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_restrict_iter<'a>(
+    repo: *mut repo::Repo,
+    restrict: *mut restrict::Restrict,
+) -> *mut repo::RestrictPkgIter<'a> {
+    let repo = null_ptr_check!(repo.as_ref());
+    let restrict = null_ptr_check!(restrict.as_ref());
+    Box::into_raw(Box::new(repo.iter_restrict(restrict.clone())))
+}
+
+/// Return the next package from a given restriction package iterator.
+///
+/// Returns NULL when the iterator is empty.
+///
+/// # Safety
+/// The argument must be a non-null RestrictPkgIter pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_restrict_iter_next(
+    i: *mut repo::RestrictPkgIter,
+) -> *mut pkg::Pkg {
+    let iter = null_ptr_check!(i.as_mut());
+    match iter.next() {
+        None => ptr::null_mut(),
+        Some(p) => Box::into_raw(Box::new(p)),
+    }
+}
+
+/// Free a repo iterator.
+///
+/// # Safety
+/// The argument must be a non-null RestrictPkgIter pointer or NULL.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_repo_restrict_iter_free(i: *mut repo::RestrictPkgIter) {
     if !i.is_null() {
         unsafe { drop(Box::from_raw(i)) };
     }

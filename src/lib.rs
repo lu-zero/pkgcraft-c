@@ -9,5 +9,6 @@ mod macros;
 pub mod parse;
 pub mod pkg;
 pub mod repo;
+pub mod restrict;
 
 pub use self::error::{Error, Result};

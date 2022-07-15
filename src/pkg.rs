@@ -4,7 +4,7 @@ use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 use pkgcraft::pkg::Package;
-use pkgcraft::{atom, pkg, repo, utils::hash, Error};
+use pkgcraft::{atom, pkg, repo, restrict, utils::hash, Error};
 
 use crate::macros::*;
 
@@ -99,6 +99,16 @@ pub unsafe extern "C" fn pkgcraft_pkg_as_ebuild(p: *mut pkg::Pkg) -> *const ebui
 pub unsafe extern "C" fn pkgcraft_pkg_hash(p: *mut pkg::Pkg) -> u64 {
     let pkg = null_ptr_check!(p.as_ref());
     hash(pkg)
+}
+
+/// Return the restriction for a given package.
+///
+/// # Safety
+/// The argument must be a non-null Pkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_pkg_restrict(p: *mut pkg::Pkg) -> *mut restrict::Restrict {
+    let pkg = null_ptr_check!(p.as_ref());
+    Box::into_raw(Box::new(pkg.into()))
 }
 
 /// Free an package.
