@@ -32,7 +32,7 @@ impl From<&repo::Repo> for RepoFormat {
         match repo {
             repo::Repo::Ebuild(_) => Self::Ebuild,
             repo::Repo::Fake(_) => Self::Fake,
-            repo::Repo::Config(_) => Self::Empty,
+            repo::Repo::Unsynced(_) => Self::Empty,
         }
     }
 }
