@@ -13,7 +13,6 @@ pub mod version;
 // TODO: https://github.com/rust-lang/rfcs/issues/2771
 /// Opaque wrapper for Atom objects.
 pub struct Atom;
-pub type Blocker = atom::Blocker;
 
 /// Parse a string into an atom using a specific EAPI. Pass NULL for the eapi argument in
 /// order to parse using the latest EAPI with extensions (e.g. support for repo deps).
@@ -88,12 +87,17 @@ pub unsafe extern "C" fn pkgcraft_atom_package(atom: *mut atom::Atom) -> *mut c_
 
 /// Return a given atom's blocker status, e.g. the atom "!cat/pkg" has a weak blocker.
 ///
+/// Returns -1 on nonexistence.
+///
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: *mut atom::Atom) -> atom::Blocker {
+pub unsafe extern "C" fn pkgcraft_atom_blocker(atom: *mut atom::Atom) -> c_int {
     let atom = null_ptr_check!(atom.as_ref());
-    atom.blocker()
+    match atom.blocker() {
+        None => -1,
+        Some(b) => b as c_int,
+    }
 }
 
 /// Return a given atom's version, e.g. the atom "=cat/pkg-1-r2" has a version of "1-r2".
