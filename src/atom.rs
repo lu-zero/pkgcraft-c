@@ -191,7 +191,7 @@ pub unsafe extern "C" fn pkgcraft_atom_use_deps(
         None => ptr::null_mut(),
         Some(use_deps) => {
             let mut ptrs: Vec<_> = use_deps
-                .into_iter()
+                .iter()
                 .map(|s| CString::new(s.as_str()).unwrap().into_raw())
                 .collect();
             ptrs.shrink_to_fit();
