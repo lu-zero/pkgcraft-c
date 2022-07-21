@@ -23,6 +23,7 @@ char *join(char **strs, char delim, size_t length) {
 int main (int argc, char **argv) {
 	char *atom, *expected, *concat_str;
 	char *value;
+	int enum_val;
 	char **array_value;
 	size_t length;
 	Atom *a = NULL;
@@ -84,13 +85,12 @@ int main (int argc, char **argv) {
 		assert(value == NULL);
 	}
 
-	value = pkgcraft_atom_slot_op(a);
+	enum_val = pkgcraft_atom_slot_op(a);
 	expected = getenv("slot_op");
 	if (expected) {
-		assert(strcmp(value, expected) == 0);
-		pkgcraft_str_free(value);
+		assert(enum_val == atoi(expected));
 	} else {
-		assert(value == NULL);
+		assert(enum_val == -1);
 	}
 
 	array_value = pkgcraft_atom_use_deps(a, &length);

@@ -157,19 +157,19 @@ pub unsafe extern "C" fn pkgcraft_atom_subslot(atom: *mut atom::Atom) -> *mut c_
     }
 }
 
-/// Return a given atom's slot operator, e.g. the atom "=cat/pkg-1-r2:0=" has a slot operator of
-/// "=".
+/// Return a given atom's slot operator, e.g. the atom "=cat/pkg-1-r2:0=" has an equal slot
+/// operator.
 ///
-/// Returns NULL on nonexistence.
+/// Returns -1 on nonexistence.
 ///
 /// # Safety
 /// The argument must be a non-null Atom pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: *mut atom::Atom) -> *mut c_char {
+pub unsafe extern "C" fn pkgcraft_atom_slot_op(atom: *mut atom::Atom) -> c_int {
     let atom = null_ptr_check!(atom.as_ref());
     match atom.slot_op() {
-        None => ptr::null_mut(),
-        Some(s) => CString::new(s).unwrap().into_raw(),
+        None => -1,
+        Some(op) => op as c_int,
     }
 }
 
