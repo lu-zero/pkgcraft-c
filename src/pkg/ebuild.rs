@@ -105,3 +105,18 @@ pub unsafe extern "C" fn pkgcraft_ebuild_pkg_iuse(
     mem::forget(ptrs);
     ptr
 }
+
+/// Return a package's long description.
+///
+/// Returns NULL on nonexistence.
+///
+/// # Safety
+/// The argument must be a non-null EbuildPkg pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_ebuild_pkg_long_description(p: *mut EbuildPkg) -> *mut c_char {
+    let pkg = null_ptr_check!(p.as_ref());
+    match pkg.long_description() {
+        None => ptr::null_mut(),
+        Some(s) => CString::new(s).unwrap().into_raw(),
+    }
+}
