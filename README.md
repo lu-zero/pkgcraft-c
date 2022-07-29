@@ -12,9 +12,10 @@ run the tests), and everything required to build pkgcraft
 Use the following commands to set up a dev environment:
 
 ```bash
-# clone the pkgcraft workspace
+# clone the pkgcraft workspace and pull the latest project updates
 git clone --recurse-submodules https://github.com/pkgcraft/pkgcraft-workspace.git
 cd pkgcraft-workspace
+git submodule update --recursive --remote
 
 # build the C library
 source ./build pkgcraft-c
