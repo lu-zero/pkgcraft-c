@@ -16,7 +16,7 @@ pub struct Restrict;
 /// # Safety
 /// The argument must be a non-null restriction string.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_restrict_parse(s: *const c_char) -> *mut restrict::Restrict {
+pub unsafe extern "C" fn pkgcraft_restrict_parse_dep(s: *const c_char) -> *mut restrict::Restrict {
     let s = null_ptr_check!(s.as_ref());
     let s = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), ptr::null_mut()) };
     let restrict = unwrap_or_return!(restrict::parse::dep(s), ptr::null_mut());
