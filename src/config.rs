@@ -59,6 +59,26 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo_path(
     Box::into_raw(Box::new(repo_conf))
 }
 
+/// Load repos from a given path to a portage-compatible repos.conf directory or file.
+///
+/// Returns 0 on success and -1 on error.
+///
+/// # Safety
+/// The path argument should be a valid path on the system.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_config_load_repos_conf(
+    config: *mut config::Config,
+    path: *const c_char,
+) -> c_int {
+    let path = null_ptr_check!(path.as_ref());
+    let path = unsafe { unwrap_or_return!(CStr::from_ptr(path).to_str(), -1) };
+    let config = null_ptr_check!(config.as_mut());
+    match config.load_repos_conf(path) {
+        Ok(_) => 0,
+        _ => -1,
+    }
+}
+
 /// Return the repos for a config.
 ///
 /// # Safety
