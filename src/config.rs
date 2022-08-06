@@ -3,9 +3,9 @@ use std::mem;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
+use pkgcraft::repo::Repository;
 use pkgcraft::{config, repo};
 
-use crate::error::update_last_error;
 use crate::macros::*;
 use crate::repo::RepoFormat;
 
@@ -62,7 +62,7 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo_path(
 
 /// Load repos from a given path to a portage-compatible repos.conf directory or file.
 ///
-/// Returns 0 on success and -1 on error.
+/// Returns NULL on error.
 ///
 /// # Safety
 /// The path argument should be a valid path on the system.
@@ -70,17 +70,28 @@ pub unsafe extern "C" fn pkgcraft_config_add_repo_path(
 pub unsafe extern "C" fn pkgcraft_config_load_repos_conf(
     config: *mut config::Config,
     path: *const c_char,
-) -> c_int {
+    len: *mut usize,
+) -> *mut *mut RepoConfig {
     let path = null_ptr_check!(path.as_ref());
-    let path = unsafe { unwrap_or_return!(CStr::from_ptr(path).to_str(), -1) };
+    let path = unsafe { unwrap_or_return!(CStr::from_ptr(path).to_str(), ptr::null_mut()) };
     let config = null_ptr_check!(config.as_mut());
-    match config.load_repos_conf(path) {
-        Err(e) => {
-            update_last_error(e);
-            -1
-        }
-        _ => 0,
-    }
+    let repos = unwrap_or_return!(config.load_repos_conf(path), ptr::null_mut());
+    let mut ptrs: Vec<_> = repos
+        .into_iter()
+        .map(|repo| {
+            let repo_conf = RepoConfig {
+                id: CString::new(repo.id()).unwrap().into_raw(),
+                format: (&repo).into(),
+                repo: Box::into_raw(Box::new(repo)),
+            };
+            Box::into_raw(Box::new(repo_conf))
+        })
+        .collect();
+    ptrs.shrink_to_fit();
+    unsafe { *len = ptrs.len() };
+    let p = ptrs.as_mut_ptr();
+    mem::forget(ptrs);
+    p
 }
 
 /// Return the repos for a config.
