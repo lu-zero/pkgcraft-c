@@ -126,6 +126,9 @@ pub unsafe extern "C" fn pkgcraft_config_repos(
 
 /// Free a repo config.
 ///
+/// Note that repo pointers aren't explicitly freed since different calls return borrowed or owned
+/// pointers so external users should handle freeing them if necessary via [`pkgcraft_repo_free`].
+///
 /// # Safety
 /// The argument must be a RepoConfig pointer or NULL.
 #[no_mangle]
