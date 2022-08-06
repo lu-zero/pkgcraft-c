@@ -5,6 +5,7 @@ use std::ptr;
 
 use pkgcraft::{config, repo};
 
+use crate::error::update_last_error;
 use crate::macros::*;
 use crate::repo::RepoFormat;
 
@@ -74,8 +75,11 @@ pub unsafe extern "C" fn pkgcraft_config_load_repos_conf(
     let path = unsafe { unwrap_or_return!(CStr::from_ptr(path).to_str(), -1) };
     let config = null_ptr_check!(config.as_mut());
     match config.load_repos_conf(path) {
-        Ok(_) => 0,
-        _ => -1,
+        Err(e) => {
+            update_last_error(e);
+            -1
+        }
+        _ => 0,
     }
 }
 
