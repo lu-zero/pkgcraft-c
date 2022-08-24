@@ -1,7 +1,6 @@
 use std::ffi::{CStr, CString};
-use std::mem;
 use std::os::raw::{c_char, c_int};
-use std::ptr;
+use std::{mem, ptr};
 
 use pkgcraft::repo::Repository;
 use pkgcraft::{config, repo};
