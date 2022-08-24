@@ -1,7 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::ptr;
 use std::str::FromStr;
+use std::{mem, ptr};
 
 use pkgcraft::eapi;
 
@@ -9,6 +9,54 @@ use crate::macros::*;
 
 /// Opaque wrapper for Eapi objects.
 pub struct Eapi;
+
+/// Get all known EAPIS.
+///
+/// # Safety
+/// The returned array must be freed via pkgcraft_eapis_free().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_eapis(len: *mut usize) -> *mut *const eapi::Eapi {
+    let mut ptrs: Vec<_> = eapi::EAPIS
+        .values()
+        .copied()
+        .map(|e| e as *const _)
+        .collect();
+    ptrs.shrink_to_fit();
+    unsafe { *len = ptrs.len() };
+    let p = ptrs.as_mut_ptr();
+    mem::forget(ptrs);
+    p
+}
+
+/// Get all official EAPIS.
+///
+/// # Safety
+/// The returned array must be freed via pkgcraft_eapis_free().
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_eapis_official(len: *mut usize) -> *mut *const eapi::Eapi {
+    let mut ptrs: Vec<_> = eapi::EAPIS_OFFICIAL
+        .values()
+        .copied()
+        .map(|e| e as *const _)
+        .collect();
+    ptrs.shrink_to_fit();
+    unsafe { *len = ptrs.len() };
+    let p = ptrs.as_mut_ptr();
+    mem::forget(ptrs);
+    p
+}
+
+/// Free an array of borrowed Eapi pointers.
+///
+/// # Safety
+/// The argument must be the value received from pkgcraft_eapis(), pkgcraft_eapis_official(), or
+/// NULL along with the length of the array.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_eapis_free(eapis: *mut *const eapi::Eapi, len: usize) {
+    if !eapis.is_null() {
+        unsafe { Vec::from_raw_parts(eapis, len, len) };
+    }
+}
 
 /// Get an EAPI given its identifier.
 ///
