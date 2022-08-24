@@ -1,10 +1,9 @@
 use std::cmp::Ordering;
-use std::ffi::CString;
-use std::os::raw::{c_char, c_int};
+use std::os::raw::c_int;
 use std::ptr;
 
 use pkgcraft::pkg::Package;
-use pkgcraft::{atom, pkg, repo, restrict, utils::hash, Error};
+use pkgcraft::{atom, eapi, pkg, repo, restrict, utils::hash, Error};
 
 use crate::macros::*;
 
@@ -40,9 +39,9 @@ pub unsafe extern "C" fn pkgcraft_pkg_repo(p: *mut pkg::Pkg) -> *const repo::Rep
 /// # Safety
 /// The argument must be a non-null Pkg pointer.
 #[no_mangle]
-pub unsafe extern "C" fn pkgcraft_pkg_eapi(p: *mut pkg::Pkg) -> *mut c_char {
+pub unsafe extern "C" fn pkgcraft_pkg_eapi(p: *mut pkg::Pkg) -> *const eapi::Eapi {
     let pkg = null_ptr_check!(p.as_ref());
-    CString::new(pkg.eapi().as_str()).unwrap().into_raw()
+    pkg.eapi()
 }
 
 /// Return a given package's version.
