@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::ptr;
 use std::str::FromStr;
@@ -34,4 +34,14 @@ pub unsafe extern "C" fn pkgcraft_eapi_has(eapi: *const eapi::Eapi, s: *const c_
     let s = unsafe { unwrap_or_return!(CStr::from_ptr(s).to_str(), false) };
     let feature = unwrap_or_return!(eapi::Feature::from_str(s), false);
     eapi.has(feature)
+}
+
+/// Return an EAPI's identifier.
+///
+/// # Safety
+/// The arguments must be a non-null Eapi pointer.
+#[no_mangle]
+pub unsafe extern "C" fn pkgcraft_eapi_as_str(eapi: *const eapi::Eapi) -> *mut c_char {
+    let eapi = null_ptr_check!(eapi.as_ref());
+    CString::new(eapi.as_str()).unwrap().into_raw()
 }
