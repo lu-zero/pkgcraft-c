@@ -3,6 +3,7 @@
 
 pub mod atom;
 pub mod config;
+pub mod eapi;
 pub mod error;
 pub mod free;
 mod macros;
